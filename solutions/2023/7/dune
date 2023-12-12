@@ -1,0 +1,7 @@
+(library
+ (name aoc_2023_7)
+ (inline_tests)
+ (preprocess
+  (pps ppx_jane))
+ (modes best)
+ (libraries aoc_std base.base_internalhash_types))

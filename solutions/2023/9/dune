@@ -1,0 +1,8 @@
+(library
+ (name aoc_2023_9)
+ (inline_tests
+  (modes best))
+ (preprocess
+  (pps ppx_jane))
+ (modes best)
+ (libraries aoc_std))

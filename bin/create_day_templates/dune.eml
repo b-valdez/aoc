@@ -1,0 +1,8 @@
+<%# day year %>(library
+ (name aoc_<%= year %>_<%= day %>)
+ (inline_tests
+  (modes best))
+ (modes best)
+ (preprocess
+  (pps ppx_jane))
+ (libraries aoc_std))

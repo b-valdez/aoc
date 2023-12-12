@@ -1,0 +1,46 @@
+<%# day year %>open! Aoc_std
+
+let parser =
+  let open Angstrom in
+  fail "TODO"
+;;
+
+let part1 _ = failwith "TODO"
+let part2 _ = failwith "TODO"
+
+let%expect_test "sample" =
+  let parsed = parse_string parser Sample.sample in
+  printf "%d" @@ part1 parsed;
+  [%expect.unreachable];
+  printf "%d" @@ part2 parsed;
+  [%expect.unreachable]
+[@@expect.uncaught_exn
+  {|
+  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+     This is strongly discouraged as backtraces are fragile.
+     Please change this test to not include a backtrace. *)
+
+  (Failure ": TODO")
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from Aoc_<%= year %>_<%= day %>__Solution.(fun) in file "solutions/<%= year %>/<%= day %>/solution.ml", line 12, characters 15-48
+  Called from Expect_test_collector.Make.Instance_io.exec in file "collector/expect_test_collector.ml", line 234, characters 12-19 |}]
+;;
+
+let%expect_test ("input" [@tags "disabled"]) =
+  let parsed = parse_string parser Input.input in
+  printf "%d" @@ part1 parsed;
+  [%expect.unreachable];
+  printf "%d" @@ part2 parsed;
+  [%expect.unreachable]
+[@@expect.uncaught_exn
+  {|
+  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+     This is strongly discouraged as backtraces are fragile.
+     Please change this test to not include a backtrace. *)
+
+  (Failure TODO)
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from Aoc_<%= year %>_<%= day %>__Solution.part1 in file "solutions/<%= year %>/<%= day %>/solution.ml" (inlined), line 9, characters 20-35
+  Called from Aoc_<%= year %>_<%= day %>__Solution.(fun) in file "solutions/<%= year %>/<%= day %>/solution.ml", line 35, characters 17-29
+  Called from Expect_test_collector.Make.Instance_io.exec in file "collector/expect_test_collector.ml", line 234, characters 12-19 |}]
+;;

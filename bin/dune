@@ -1,0 +1,31 @@
+(executable
+ (name create_day)
+ (public_name create_day)
+ (modules create_day create_day_templates)
+ (preprocess
+  (pps ppx_jane))
+ (libraries
+  shexp.process
+  core
+  core.command
+  embedded_ocaml_templates.EML_runtime
+  base
+  posixat
+  time_now))
+
+(executable
+ (name bundle_blob)
+ (public_name bundle_blob)
+ (modules bundle_blob)
+ (preprocess
+  (pps ppx_jane))
+ (libraries core stdio base time_now))
+
+(data_only_dirs day_template)
+
+(rule
+ (target create_day_templates.ml)
+ (deps
+  (source_tree create_day_templates))
+ (action
+  (run eml_compiler create_day_templates)))
