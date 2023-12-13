@@ -138,10 +138,21 @@ module Angstrom = struct
 
   let tf_grid =
     let line =
+      many1_till
+        (char '#' >>| Fn.const true <|> (char '.' >>| Fn.const false))
+        (end_of_line <|> end_of_input)
+      >>| Array.of_list
+      <* commit
+    in
+    many1_till line end_of_input >>| Array.of_list <?> "tf_grid"
+  ;;
+
+  let tf_grid_lazy =
+    let line =
       many1 (char '#' >>| Fn.const true <|> (char '.' >>| Fn.const false))
       >>| Array.of_list
     in
-    lines line >>| Array.of_list
+    lines_lazy line >>| Array.of_list <?> "tf_grid_lazy"
   ;;
 
   let sparse_tf_grid =
