@@ -59,8 +59,12 @@ module Angstrom = struct
   ;;
 
   let many_unique comparator p =
+    let empty_set = Set.empty comparator in
+    let add_to_set = Fn.flip Set.add in
     fix (fun many_unique_p ->
-      lift2 (Fn.flip Set.add) p many_unique_p <|> return (Set.empty comparator))
+      match%bind option None (p >>| Option.some) with
+      | Some el -> lift (add_to_set el) many_unique_p
+      | None -> empty_set |> return)
     <?> "many_unique"
   ;;
 
