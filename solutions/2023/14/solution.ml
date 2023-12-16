@@ -52,6 +52,7 @@ let part2 grid =
     Int.between ~low:0 ~high:(grid_width - 1) x
     && Int.between ~low:0 ~high:(grid_height - 1) y
   in
+  (* TODO: don't try to move already settled rocks*)
   let rec tilt direction cube_pos round_pos =
     let next_round_pos =
       Set.map
@@ -70,34 +71,21 @@ let part2 grid =
     else (tilt [@tailcall]) direction cube_pos next_round_pos
   in
   let spin_order = [ `N; `W; `S; `E ] in
-  let rec spin times cube_pos visited round_pos round =
-    (* TODO promote loop detection to Aoc_Std *)
-    let after_spin =
-      List.fold spin_order ~init:round_pos ~f:(fun round_pos direction ->
-        tilt direction cube_pos round_pos)
-    in
-    match Map.add visited ~key:(Set.to_tree after_spin) ~data:round with
-    | `Ok visited -> (spin [@tailcall]) times cube_pos visited after_spin (round + 1)
-    | `Duplicate ->
-      let visited_at = Map.find_exn visited (Set.to_tree after_spin) in
-      let loop_length = round - visited_at in
-      let last_equivalent = ((times - round) mod loop_length) + visited_at in
-      (* TODO promote: Iter.of_map*)
-      Map.iteri visited
-      |> fun g ->
-      (fun consume -> g ~f:(fun ~key ~data -> consume (key, data)))
-      |> Iter.find_pred ~f:(fun (_, round) -> round = last_equivalent)
-      |> Option.value_exn
-      |> fst
-      |> Set.of_tree (module Position)
-  in
-  let module Tree_comparator = struct
-    include Set.Make_tree (Position)
-    include (val Comparator.make ~compare ~sexp_of_t)
+  let module Position_set = struct
+    (* TODO: possibly lift, also look into making Set.Tree.t hashable *)
+    include Set.Make_using_comparator (Position)
+
+    let hash = [%hash: Set.M(Position).t]
   end
   in
   let final_round_pos =
-    spin 1000000000 cube_pos (Map.empty (module Tree_comparator)) round_pos 1
+    detect_loop_and_skip_to
+      (module Position_set)
+      ~skip_to:1000000000
+      ~init:round_pos
+      ~f:(fun state ->
+        List.fold spin_order ~init:state ~f:(fun state direction ->
+          tilt direction cube_pos state))
   in
   Set.sum (module Int) final_round_pos ~f:(fun (_, y) -> grid_height - y)
 ;;
@@ -115,5 +103,5 @@ let%expect_test "input" =
   printf "%d" @@ part1 parsed;
   [%expect {| 111979 |}];
   printf "%d" @@ part2 parsed;
-  [%expect{| 102055 |}]
+  [%expect {| 102055 |}]
 ;;

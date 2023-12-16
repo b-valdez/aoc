@@ -1,6 +1,14 @@
 (** {2 Iter} *)
 
-module Iter = IterLabels
+module Iter = struct
+  include IterLabels (** @inline *)
+
+  (** {2 Added for AOC} *)
+
+  let of_map_iteri map_iteri (consume : _ -> unit) : unit =
+    map_iteri ~f:(fun ~key ~data -> consume (key, data))
+  ;;
+end
 
 (** {2 Core} *)
 
@@ -34,7 +42,7 @@ module Angstrom = struct
   (** {2 Added for AOC} *)
 
   let skip_string chars = string chars *> return () <?> "skip_string"
-  let skip_while1 pred = skip pred *> skip_while pred
+  let skip_while1 pred = skip pred *> skip_while pred <?> "skip_while1"
   let space = char ' ' *> return () <?> "space"
   let spaces = skip_many1 (char ' ') <?> "spaces"
   let digit = satisfy Char.is_digit >>| Char.get_digit_exn <?> "digit"
@@ -58,16 +66,17 @@ module Angstrom = struct
     <?> "many1_till"
   ;;
 
-  let many_unique comparator p =
-    let empty_set = Set.empty comparator in
-    let add_to_set = Fn.flip Set.add in
-    fix (fun many_unique_p ->
+  (** untested *)
+  let many_unique =
+    let rec aux p set =
       match%bind option None (p >>| Option.some) with
-      | Some el -> lift (add_to_set el) many_unique_p
-      | None -> empty_set |> return)
-    <?> "many_unique"
+      | None -> return set
+      | Some el -> (aux [@tailcall]) p (Set.add set el)
+    in
+    fun comparator p -> aux p (Set.empty comparator) <?> "many_unique"
   ;;
 
+  (** untested *)
   let many_unique1 comparator p =
     lift2 (Fn.flip Set.add) p (many_unique comparator p) <?> "many_unique1"
   ;;
@@ -169,6 +178,7 @@ module Angstrom = struct
         | '\r' -> Some (acc, pos)
         | _ -> None)
     >>| fst
+    <?> "sparse_tf_grid"
   ;;
 end
 
@@ -178,7 +188,7 @@ module Grid = struct
   type 'a t = 'a array array [@@deriving sexp]
 
   module Position = struct
-    type t = int * int [@@deriving sexp, compare]
+    type t = int * int [@@deriving sexp, compare, hash]
 
     include (val Comparator.make ~compare ~sexp_of_t)
   end
@@ -235,3 +245,25 @@ let gcd a b =
 ;;
 
 let lcm a b = a * b / gcd a b
+
+let detect_loop_and_skip_to_mapped ?size ~map ~unmap state_module ~f ~init ~skip_to =
+  let visited = Hashtbl.create ?size state_module in
+  let rec aux iteration current =
+    let next = f current in
+    match Hashtbl.add visited ~key:(map next) ~data:iteration with
+    | `Ok -> (aux [@tailcall]) (iteration + 1) next
+    | `Duplicate ->
+      let visited_at = Hashtbl.find_exn visited (map next) in
+      let loop_length = iteration - visited_at in
+      Hashtbl.iteri visited
+      |> Iter.of_map_iteri
+      |> Iter.find_pred_exn ~f:(fun (_, iteration) ->
+        iteration = ((skip_to - visited_at) mod loop_length) + visited_at)
+      |> fst
+      |> unmap
+  in
+  Hashtbl.add_exn visited ~key:(map init) ~data:0;
+  aux 1 init
+;;
+
+let detect_loop_and_skip_to = detect_loop_and_skip_to_mapped ~map:Fn.id ~unmap:Fn.id
