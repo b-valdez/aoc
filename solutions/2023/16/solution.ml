@@ -42,12 +42,9 @@ let mirrored_b = function
   | `S -> `W
 ;;
 
-let all_of_horizontal = [ `E; `W ]
-let all_of_vertical = [ `S; `N ]
-
 module Partial_cell_state = struct
   type t =
-    { entry : [ `N | `E | `W | `S ]
+    { entry : Direction.t
     ; cell : int * int
     }
   [@@deriving equal, compare, sexp_of, fields]
@@ -106,13 +103,13 @@ let energized_by grid start =
                    List.map [%all: horizontal] ~f:(fun direction ->
                      Partial_cell_state.
                        { cell = step cell_state.cell (opposite direction)
-                       ; entry = direction
+                       ; entry = (direction :> [ `E | `N | `S | `W ])
                        })
                  | Splitter_vertical, _ ->
                    List.map [%all: vertical] ~f:(fun direction ->
                      Partial_cell_state.
                        { cell = step cell_state.cell (opposite direction)
-                       ; entry = direction
+                       ; entry = (direction :> [ `E | `N | `S | `W ])
                        })
                in
                filter_adjacent visited adjacent
@@ -205,10 +202,10 @@ let part2 grid =
               | direction' -> Some { entry with entry = direction' })
           | Splitter_horizontal, #vertical ->
             List.map [%all: horizontal] ~f:(fun direction' ->
-              { entry with entry = direction' })
+              { entry with entry = (direction' :> Direction.t) })
           | Splitter_vertical, #horizontal ->
             List.map [%all: vertical] ~f:(fun direction' ->
-              { entry with entry = direction' })
+              { entry with entry = (direction' :> Direction.t) })
         in
         entry, equivalent_exits)
       |> gen_of_iter
