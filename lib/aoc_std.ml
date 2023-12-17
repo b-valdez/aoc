@@ -200,7 +200,7 @@ module Grid = struct
       | `S
       | `W
       ]
-    [@@deriving enumerate, sexp]
+    [@@deriving enumerate, sexp, compare]
 
     type horizontal =
       [ `E
