@@ -17,3 +17,12 @@ val detect_loop_and_skip_to
   -> init:'a
   -> skip_to:int
   -> 'a
+
+val a_star
+  :  ?verbose:unit
+  -> ('key, _) Comparator.comparator
+  -> ('priority, _) Comparator.comparator
+  -> step:('key -> 'priority -> ('key * 'priority) Iter.t)
+  -> sorted_start_positions:('key * 'priority) list
+  -> is_goal:('key -> bool)
+  -> 'key * 'priority

@@ -10,6 +10,7 @@
   (re_export core)
   (re_export angstrom)
   core_kernel.composition_infix
+  psq
   ; these are the libraries I need so our solutions compile without warnings because of (implicit_transitive_deps false)
   (re_export base) ; for many core modules
   (re_export stdio) ; for lexing/parser

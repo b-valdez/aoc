@@ -5,4 +5,4 @@
  (modes best)
  (preprocess
   (pps ppx_jane))
- (libraries aoc_std psq))
+ (libraries aoc_std))

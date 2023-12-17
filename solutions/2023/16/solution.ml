@@ -19,15 +19,6 @@ let parser =
     | _ -> assert false)
 ;;
 
-(*TODO: derive equal on Direction.t, lift beam_path and some derivations*)
-
-let opposite = function
-  | `N -> `S
-  | `S -> `N
-  | `E -> `W
-  | `W -> `E
-;;
-
 let mirrored_a = function
   | `N -> `W
   | `W -> `N
@@ -53,17 +44,11 @@ module Partial_cell_state = struct
 end
 
 let energized_by grid start =
-  let grid_height = Array.length grid in
-  let grid_width = Array.length grid.(0) in
-  let in_grid (x, y) =
-    Int.between ~low:0 ~high:(grid_height - 1) y
-    && Int.between ~low:0 ~high:(grid_width - 1) x
-  in
   let open Direction in
   let filter_adjacent visited adjacent =
     let adjacent_filtered =
       List.filter adjacent ~f:(fun Partial_cell_state.({ cell; _ } as state) ->
-        in_grid cell && not (Set.mem visited state))
+        in_grid grid cell && not (Set.mem visited state))
     in
     adjacent_filtered
   in
@@ -103,13 +88,13 @@ let energized_by grid start =
                    List.map [%all: horizontal] ~f:(fun direction ->
                      Partial_cell_state.
                        { cell = step cell_state.cell (opposite direction)
-                       ; entry = (direction :> [ `E | `N | `S | `W ])
+                       ; entry = direction
                        })
                  | Splitter_vertical, _ ->
                    List.map [%all: vertical] ~f:(fun direction ->
                      Partial_cell_state.
                        { cell = step cell_state.cell (opposite direction)
-                       ; entry = (direction :> [ `E | `N | `S | `W ])
+                       ; entry = direction
                        })
                in
                filter_adjacent visited adjacent
@@ -118,34 +103,6 @@ let energized_by grid start =
       |> fun (visited, next) -> (breadth_first [@tailcall]) visited next
   in
   breadth_first (Set.empty (module Partial_cell_state)) [ start ]
-;;
-
-(* TODO lift *)
-let gen_of_iter (type a) (iter : a Iter.t) : _ -> a =
-  let module M = struct
-    type _ Effect.t += Yield : a -> unit Effect.t
-  end
-  in
-  let yield v = Effect.perform (M.Yield v) in
-  let rec next =
-    ref
-    @@ fun () ->
-    Effect.Deep.match_with
-      iter
-      yield
-      { retc = (fun () -> raise_notrace @@ Not_found_s [%message "No further values"])
-      ; exnc = raise
-      ; effc =
-          (fun (type b) : (b Effect.t -> _) -> function
-            | M.Yield (v : a) ->
-              Some
-                (fun (k : (b, _) Effect.Deep.continuation) ->
-                  (next := fun () -> Effect.Deep.continue k ());
-                  v)
-            | _ -> None)
-      }
-  in
-  fun _ -> !next ()
 ;;
 
 let cells_in set =
@@ -157,12 +114,9 @@ let cells_in set =
   |> Iter.length
 ;;
 
-(* TODO lift in_grid*)
 let part1 grid = cells_in @@ energized_by grid { cell = 0, 0; entry = `W }
 
 let part2 grid =
-  let grid_height = Array.length grid in
-  let grid_width = Array.length grid.(0) in
   let module Comparator = struct
     type t = Partial_cell_state.t * (Partial_cell_state.t list[@opaque])
     [@@deriving sexp_of, compare]
@@ -175,17 +129,17 @@ let part2 grid =
       let open Iter in
       append_l
         [ map
-            (0 -- (grid_width - 1))
+            (0 -- (width grid - 1))
             ~f:(fun x -> Partial_cell_state.{ cell = x, 0; entry = `N })
         ; map
-            (0 -- (grid_height - 1))
-            ~f:(fun y -> Partial_cell_state.{ cell = grid_width - 1, y; entry = `E })
+            (0 -- (height grid - 1))
+            ~f:(fun y -> Partial_cell_state.{ cell = width grid - 1, y; entry = `E })
         ; map
-            (0 -- (grid_height - 1))
+            (0 -- (height grid - 1))
             ~f:(fun y -> Partial_cell_state.{ cell = 0, y; entry = `W })
-        ; 0 -- (grid_width - 1)
+        ; 0 -- (width grid - 1)
           |> map ~f:(fun x ->
-            Partial_cell_state.{ cell = x, grid_height - 1; entry = `S })
+            Partial_cell_state.{ cell = x, height grid - 1; entry = `S })
         ]
       |> map ~f:(fun entry ->
         let open Direction in
@@ -197,23 +151,26 @@ let part2 grid =
           | Splitter_horizontal, (#horizontal as direction)
           | Splitter_vertical, (#vertical as direction) ->
             List.filter_map [%all: Direction.t] ~f:(function
-              | direction' when [%equal: [ `N | `E | `W | `S ]] direction' direction ->
-                None
+              | direction' when [%equal: Direction.t] direction' direction -> None
               | direction' -> Some { entry with entry = direction' })
           | Splitter_horizontal, #vertical ->
             List.map [%all: horizontal] ~f:(fun direction' ->
-              { entry with entry = (direction' :> Direction.t) })
+              { entry with entry = direction' })
           | Splitter_vertical, #horizontal ->
             List.map [%all: vertical] ~f:(fun direction' ->
-              { entry with entry = (direction' :> Direction.t) })
+              { entry with entry = direction' })
         in
         entry, equivalent_exits)
-      |> gen_of_iter
+      |> Iter.to_gen
     in
-    Set.of_increasing_iterator_unchecked
-      (module Comparator)
-      ~len:(2 * (grid_height + grid_width))
-      ~f:iterator
+    let result =
+      Set.of_increasing_iterator_unchecked
+        (module Comparator)
+        ~len:(2 * (height grid + width grid))
+        ~f:iterator.next
+    in
+    iterator.free ();
+    result
   in
   let rec aux max_found to_consider =
     match Set.choose to_consider with
@@ -229,14 +186,6 @@ let part2 grid =
       (aux [@tailcall]) max_found to_consider
   in
   aux 0 start_positions
-;;
-
-let%expect_test "gen_of_iter" =
-  let f = gen_of_iter (Iter.doubleton 1 2) in
-  printf "%d" (f 0);
-  [%expect {| 1 |}];
-  printf "%d" (f 0);
-  [%expect {| 2 |}]
 ;;
 
 let%expect_test "sample" =

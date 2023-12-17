@@ -5,4 +5,4 @@
  (modes best)
  (preprocess
   (pps ppx_jane))
- (libraries aoc_std))
+ (libraries aoc_std base.base_internalhash_types))

@@ -8,21 +8,20 @@ let parser =
 
 let find_reflection_row grid =
   let open Iter in
-  1 -- (Array.length grid - 1)
+  1 -- (height grid - 1)
   |> filter ~f:(fun y ->
-    1 -- Int.min y (Array.length grid - y)
+    1 -- Int.min y (height grid - y)
     |> for_all ~f:(fun dy -> [%equal: bool array] grid.(y + dy - 1) grid.(y - dy)))
   |> head
 ;;
 
 let find_reflection_col grid =
   let open Iter in
-  let width = Array.length grid.(0) in
-  1 -- (width - 1)
+  1 -- (width grid - 1)
   |> filter ~f:(fun x ->
-    1 -- Int.min x (width - x)
+    1 -- Int.min x (width grid - x)
     |> for_all ~f:(fun dx ->
-      0 -- (Array.length grid - 1)
+      0 -- (height grid - 1)
       |> for_all ~f:(fun y -> [%equal: bool] grid.^(x + dx - 1, y) grid.^(x - dx, y))))
   |> head
 ;;
@@ -39,10 +38,10 @@ let part1 =
 
 let find_smudged_reflection_row grid =
   let open Iter in
-  1 -- (Array.length grid - 1)
+  1 -- (height grid - 1)
   |> filter ~f:(fun y ->
     let smudges =
-      1 -- Int.min y (Array.length grid - y)
+      1 -- Int.min y (height grid - y)
       |> fold ~init:0 ~f:(fun smudges dy ->
         Array.fold2_exn
           ~init:smudges
@@ -56,13 +55,12 @@ let find_smudged_reflection_row grid =
 
 let find_smudged_reflection_col grid =
   let open Iter in
-  let width = Array.length grid.(0) in
-  1 -- (width - 1)
+  1 -- (width grid - 1)
   |> filter ~f:(fun x ->
     let smudges =
-      1 -- Int.min x (width - x)
+      1 -- Int.min x (width grid - x)
       |> fold ~init:0 ~f:(fun smudges dx ->
-        0 -- (Array.length grid - 1)
+        0 -- (height grid - 1)
         |> fold ~init:smudges ~f:(fun smudges y ->
           if [%equal: bool] grid.^(x + dx - 1, y) grid.^(x - dx, y)
           then smudges

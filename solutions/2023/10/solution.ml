@@ -85,8 +85,6 @@ let part2 (start, grid, loop) =
   let loop_pipes =
     Set.of_list (module Tuple.Comparator (Core.Int) (Core.Int)) (loop |> List.map ~f:snd)
   in
-  let grid_dim_x = Array.length grid.(0) in
-  let grid_dim_y = Array.length grid in
   let start_pipe =
     let connected_to_north =
       let north = step start N in
@@ -120,11 +118,11 @@ let part2 (start, grid, loop) =
   in
   let open Iter in
   fold
-    (0 -- (grid_dim_x - 1))
+    (0 -- (width grid - 1))
     ~init:0
     ~f:(fun count x ->
       fold
-        (0 -- (grid_dim_y - 1))
+        (0 -- (height grid - 1))
         ~init:(count, true, None)
         ~f:(fun (count, is_outside, seen) y ->
           let on_pipe =
