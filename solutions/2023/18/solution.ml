@@ -30,88 +30,115 @@ let parser =
 ;;
 
 let trench =
-  let set = Grid.Position.Set.empty in
+  let map = Grid.Position.Map.empty in
   List.fold
-    ~init:(set, (0, 0))
-    ~f:(fun acc (direction, steps) ->
+    ~init:(map, (0, 0), 0)
+    ~f:(fun (corners, pos, id) (direction, steps) ->
       let open Grid.Direction in
-      Fn.apply_n_times
-        ~n:steps
-        (fun (trench, pos) ->
-          let pos = step pos direction in
-          let colored = Set.add trench pos in
-          colored, pos)
-        acc)
-  >> fst
+      let pos = Fn.apply_n_times ~n:steps (fun pos -> step pos direction) pos in
+      Map.add_exn corners ~key:pos ~data:id, pos, id + 1)
+  >> Tuple3.get1
 ;;
 
 let lagoon_size trench =
-  let min_x, max_x, min_y, max_y =
-    Set.fold trench ~init:(0, 0, 0, 0) ~f:(fun (min_x, max_x, min_y, max_y) (x, y) ->
-      let min_x, max_x =
-        if x < min_x then x, max_x else if x > max_x then min_x, x else min_x, max_x
-      in
+  let min_x, min_y, max_y =
+    Map.fold trench ~init:(0, 0, 0) ~f:(fun ~key:(x, y) ~data:_ (min_x, min_y, max_y) ->
+      let min_x = if x < min_x then x else min_x in
       let min_y, max_y =
         if y < min_y then y, max_y else if y > max_y then min_y, y else min_y, max_y
       in
-      min_x, max_x, min_y, max_y)
+      min_x, min_y, max_y)
   in
-  let open Iter in
-  fold (min_x -- max_x) ~init:0 ~f:(fun count x ->
-    fold (min_y -- max_y) ~init:(count, None, false) ~f:(fun (count, seen, is_inside) y ->
-      let in_trench = Set.mem trench (x, y) in
-      let next_seen, next_is_inside =
-        match seen, in_trench with
-        | None, false -> None, is_inside
-        | Some _, false -> assert false, is_inside
-        | None, true ->
-          let adjacencies =
-            List.filter [ `E; `W ] ~f:(fun side ->
-              Set.mem trench (Grid.Direction.step (x, y) side))
-          in
-          (match adjacencies with
-           | [ _; _ ] -> None, not is_inside
-           | [ direction ] -> Some direction, is_inside
-           | _ -> assert false)
-        | Some direction, true ->
-          let adjacent =
-            List.find [ `E; `W ] ~f:(fun side ->
-              Set.mem trench (Grid.Direction.step (x, y) side))
-          in
-          (match adjacent with
-           | Some direction' when [%equal: Grid.Direction.t] direction direction' ->
-             None, is_inside
-           | Some _ -> None, not is_inside
-           | None -> Some direction, is_inside)
+  (* inside_ranges is (min_inclusive * max_inclusive) list*)
+  let find_inside_range inside_ranges y =
+    List.find inside_ranges ~f:(fun (low, high) -> Int.between ~low ~high y)
+  in
+  let last_index = Map.find_exn trench (0, 0) in
+  let rec aux count last_x_pos inside_ranges =
+    let closest_key =
+      Map.closest_key trench `Greater_or_equal_to (last_x_pos + 1, min_y)
+    in
+    match closest_key with
+    | None -> count
+    | Some ((x_pos, y), _) ->
+      let count =
+        count
+        + ((x_pos - last_x_pos)
+           * List.sum (module Int) ~f:(fun (a, b) -> b - a + 1) inside_ranges)
       in
-      if in_trench || is_some next_seen || is_inside
-      then count + 1, next_seen, next_is_inside
-      else count, next_seen, next_is_inside)
-    |> Tuple3.get1)
+      let next_inside_ranges, count, _ =
+        Map.fold_range_inclusive
+          trench
+          ~min:(x_pos, y)
+          ~max:(x_pos, max_y)
+          ~init:(inside_ranges, count, None)
+          ~f:(fun ~key:(_, corner_y) ~data:id ->
+            function
+            | inside_ranges, count, Some (other_corner_y, other_id)
+              when List.mem [ 1; last_index - 1 ] ~equal (abs (other_id - id)) ->
+              let inside_ranges, count =
+                match
+                  ( find_inside_range inside_ranges other_corner_y
+                  , find_inside_range inside_ranges corner_y )
+                with
+                | None, None ->
+                  ( (other_corner_y, corner_y) :: inside_ranges
+                  , count + corner_y - other_corner_y + 1 )
+                | Some (low, high), None ->
+                  ( List.update_concat
+                      inside_ranges
+                      ~equal:[%equal: int * int]
+                      (low, high)
+                      [ low, corner_y ]
+                  , count + corner_y - other_corner_y )
+                | None, Some (low, high) ->
+                  ( List.update_concat
+                      inside_ranges
+                      ~equal:[%equal: int * int]
+                      (low, high)
+                      [ other_corner_y, high ]
+                  , count + corner_y - other_corner_y )
+                | Some (low, high), Some (low', _) when low = low' ->
+                  ( List.update_concat
+                      inside_ranges
+                      ~equal:[%equal: int * int]
+                      (low, high)
+                      (List.filter
+                         [ low, other_corner_y; corner_y, high ]
+                         ~f:(fun (a, b) -> a < b))
+                  , count )
+                | Some (low, low_to), Some (high_from, high) ->
+                  let intermediate_list =
+                    List.update_concat
+                      inside_ranges
+                      ~equal:[%equal: int * int]
+                      (low, low_to)
+                      []
+                  in
+                  ( List.update_concat
+                      intermediate_list
+                      ~equal:[%equal: int * int]
+                      (high_from, high)
+                      [ low, high ]
+                  , count + corner_y - other_corner_y - 1 )
+              in
+              inside_ranges, count, None
+            | inside_ranges, count, _ -> inside_ranges, count, Some (corner_y, id))
+      in
+      (aux [@tailcall]) count x_pos next_inside_ranges
+  in
+  aux 0 (min_x - 1) []
 ;;
 
 let part1 = List.map ~f:fst >> trench >> lagoon_size
-
-(** this is much too inefficient for even the sample: Span rectangles! *)
-let part2 _ = failwith "TODO"
+let part2 = List.map ~f:snd >> trench >> lagoon_size
 
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
   [%expect {| 62 |}];
   printf "%d" @@ part2 parsed;
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-
-  (Failure TODO)
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Aoc_2023_18__Solution.part2 in file "solutions/2023/18/solution.ml" (inlined), line 96, characters 14-29
-  Called from Aoc_2023_18__Solution.(fun) in file "solutions/2023/18/solution.ml", line 102, characters 17-29
-  Called from Expect_test_collector.Make.Instance_io.exec in file "collector/expect_test_collector.ml", line 234, characters 12-19 |}]
+  [%expect {| 952408144115 |}]
 ;;
 
 let%expect_test "input" =
@@ -119,16 +146,5 @@ let%expect_test "input" =
   printf "%d" @@ part1 parsed;
   [%expect {| 35991 |}];
   printf "%d" @@ part2 parsed;
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-
-  (Failure TODO)
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Aoc_2023_18__Solution.part2 in file "solutions/2023/18/solution.ml" (inlined), line 96, characters 14-29
-  Called from Aoc_2023_18__Solution.(fun) in file "solutions/2023/18/solution.ml", line 121, characters 17-29
-  Called from Expect_test_collector.Make.Instance_io.exec in file "collector/expect_test_collector.ml", line 234, characters 12-19 |}]
+  [%expect {| 54058824661845 |}]
 ;;
