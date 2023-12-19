@@ -76,28 +76,28 @@ let lagoon_size trench =
             function
             | inside_ranges, count, Some (other_corner_y, other_id)
               when List.mem [ 1; last_index - 1 ] ~equal (abs (other_id - id)) ->
-              let inside_ranges, count =
+              let inside_ranges, additional_count =
                 match
                   ( find_inside_range inside_ranges other_corner_y
                   , find_inside_range inside_ranges corner_y )
                 with
                 | None, None ->
                   ( (other_corner_y, corner_y) :: inside_ranges
-                  , count + corner_y - other_corner_y + 1 )
+                  , corner_y - other_corner_y + 1 )
                 | Some (low, high), None ->
                   ( List.update_concat
                       inside_ranges
                       ~equal:[%equal: int * int]
                       (low, high)
                       [ low, corner_y ]
-                  , count + corner_y - other_corner_y )
+                  , corner_y - other_corner_y )
                 | None, Some (low, high) ->
                   ( List.update_concat
                       inside_ranges
                       ~equal:[%equal: int * int]
                       (low, high)
                       [ other_corner_y, high ]
-                  , count + corner_y - other_corner_y )
+                  , corner_y - other_corner_y )
                 | Some (low, high), Some (low', _) when low = low' ->
                   ( List.update_concat
                       inside_ranges
@@ -106,7 +106,7 @@ let lagoon_size trench =
                       (List.filter
                          [ low, other_corner_y; corner_y, high ]
                          ~f:(fun (a, b) -> a < b))
-                  , count )
+                  , 0 )
                 | Some (low, low_to), Some (high_from, high) ->
                   let intermediate_list =
                     List.update_concat
@@ -120,9 +120,9 @@ let lagoon_size trench =
                       ~equal:[%equal: int * int]
                       (high_from, high)
                       [ low, high ]
-                  , count + corner_y - other_corner_y - 1 )
+                  , corner_y - other_corner_y - 1 )
               in
-              inside_ranges, count, None
+              inside_ranges, count + additional_count, None
             | inside_ranges, count, _ -> inside_ranges, count, Some (corner_y, id))
       in
       (aux [@tailcall]) count x_pos next_inside_ranges

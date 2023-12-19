@@ -1,0 +1,8 @@
+(library
+ (name aoc_2023_19)
+ (inline_tests
+  (modes best))
+ (modes best)
+ (preprocess
+  (pps ppx_jane))
+ (libraries aoc_std string_dict))
