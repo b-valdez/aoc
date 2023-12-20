@@ -1,5 +1,16 @@
 open! Core
 
+val detect_loop_with_affine_accumulator
+  :  ?size:int
+  -> 'a Base.Hashtbl.Key.t
+  -> f:('a -> 'b -> 'a * 'b)
+  -> init_state:'a
+  -> init_acc:'b
+  -> skip_to:int
+  -> compute_final_accumulator:
+       (found_in_loop:'b -> loops:int -> before_loop:'b -> after_loop:'b -> 'b)
+  -> 'a * 'b
+
 val detect_loop_and_skip_to_mapped
   :  ?size:int
   -> map:('a -> 'b)

@@ -4,7 +4,17 @@
 
 (package
  (name aoc)
- (depends core core_kernel iter ppx_jane re angstrom ocaml dune shexp))
+ (depends
+  core
+  core_kernel
+  iter
+  ppx_jane
+  re
+  string_dict
+  angstrom
+  ocaml
+  dune
+  shexp))
 
 (implicit_transitive_deps false)
 
