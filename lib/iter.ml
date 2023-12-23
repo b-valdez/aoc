@@ -41,3 +41,18 @@ let to_gen (type a) (iter : a t) : a gen =
   in
   { next = (fun _ -> !next ()); free = (fun () -> !free ()) }
 ;;
+
+module Let_syntax = struct
+  let return = return
+  let ( >>= ) = ( >>= )
+  let ( >>| ) = ( >|= )
+
+  module Let_syntax = struct
+    let return = return
+    let bind t ~f = flat_map ~f t
+    let map t ~f = map ~f t
+    let both = product
+
+    module Open_on_rhs = Infix
+  end
+end
