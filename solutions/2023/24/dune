@@ -1,0 +1,9 @@
+(library
+ (name aoc_2023_24)
+ (inline_tests
+  (modes byte))
+ (modes byte)
+ (preprocess
+  (pps ppx_jane))
+ (libraries aoc_std owl owl-base)
+ (modules input sample solution))

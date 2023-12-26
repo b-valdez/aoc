@@ -13,6 +13,7 @@
   string_dict
   angstrom
   ocaml
+  owl
   dune
   shexp))
 
