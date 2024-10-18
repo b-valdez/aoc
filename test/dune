@@ -1,0 +1,7 @@
+(library
+ (name test)
+ (inline_tests
+  (modes byte))
+ (preprocess
+  (pps ppx_expect))
+ (libraries aoc_std moonpool moonpool.fib picos_std.structured))

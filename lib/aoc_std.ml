@@ -1,6 +1,7 @@
 (** {2 Iter} *)
 
 module Iter = Iter
+module Parallel_iter = Parallel_iter
 
 (** {2 Core} *)
 

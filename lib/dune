@@ -5,23 +5,15 @@
  (preprocess
   (pps ppx_jane))
  (libraries
-  ; these are the libraries we want
-  (re_export iter)
+  iter
   (re_export core)
-  (re_export angstrom)
+  angstrom
   core_kernel.composition_infix
   psq
-  ; these are the libraries I need so our solutions compile without warnings because of (implicit_transitive_deps false)
-  (re_export base) ; for many core modules
-  (re_export stdio) ; for lexing/parser
-  (re_export time_now) ; the following for ppx_expect
-  (re_export ppx_expect.config_types)
-  (re_export ppx_expect.common)
-  ; these are libraries we need so this compiles without (benign) warnings
-  core.filename_base
-  bigstringaf
-  sexplib0
-  bin_prot
-  typerep
-  sexplib
-  base_quickcheck))
+  obatcher
+  obatcher.ds
+  picos
+  picos_std.structured
+  picos_std.sync
+  (re_export base)
+  (re_export ppx_expect.config_types)))

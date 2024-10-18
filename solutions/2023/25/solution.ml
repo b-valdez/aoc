@@ -112,42 +112,14 @@ let part1 adjacency_lists =
     (Option.value_exn (Map.closest_key adjacency_lists `Greater_or_equal_to "") |> fst)
 ;;
 
-let part2 _ = failwith "TODO"
-
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 54 |}];
-  printf "%d" @@ part2 parsed;
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-
-  (Failure TODO)
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Aoc_2023_25__Solution.part2 in file "solutions/2023/25/solution.ml" (inlined), line 115, characters 14-29
-  Called from Aoc_2023_25__Solution.(fun) in file "solutions/2023/25/solution.ml", line 121, characters 17-29
-  Called from Expect_test_collector.Make.Instance_io.exec in file "collector/expect_test_collector.ml", line 234, characters 12-19 |}]
+  [%expect {| 54 |}]
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect{| 562912 |}];
-  printf "%d" @@ part2 parsed;
-  [%expect.unreachable]
-[@@expect.uncaught_exn
-  {|
-  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
-     This is strongly discouraged as backtraces are fragile.
-     Please change this test to not include a backtrace. *)
-
-  (Failure TODO)
-  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Aoc_2023_25__Solution.part2 in file "solutions/2023/25/solution.ml" (inlined), line 115, characters 14-29
-  Called from Aoc_2023_25__Solution.(fun) in file "solutions/2023/25/solution.ml", line 140, characters 17-29
-  Called from Expect_test_collector.Make.Instance_io.exec in file "collector/expect_test_collector.ml", line 234, characters 12-19 |}]
+  [%expect {| 562912 |}]
 ;;

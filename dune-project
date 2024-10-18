@@ -1,4 +1,4 @@
-(lang dune 3.10)
+(lang dune 3.16)
 
 (name aoc)
 
@@ -15,7 +15,9 @@
   ocaml
   owl
   dune
-  shexp))
+  shexp
+  moonpool
+  obatcher))
 
 (implicit_transitive_deps false)
 

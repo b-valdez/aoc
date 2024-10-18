@@ -1,5 +1,6 @@
 (executable
  (name create_day)
+ (modes byte)
  (public_name create_day)
  (modules create_day create_day_templates)
  (preprocess
@@ -9,9 +10,7 @@
   core
   core.command
   embedded_ocaml_templates.EML_runtime
-  base
-  posixat
-  time_now))
+  base))
 
 (executable
  (name bundle_blob)

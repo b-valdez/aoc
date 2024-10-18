@@ -6,10 +6,14 @@ depends: [
   "iter"
   "ppx_jane"
   "re"
+  "string_dict"
   "angstrom"
   "ocaml"
-  "dune" {>= "3.10"}
+  "owl"
+  "dune" {>= "3.16"}
   "shexp"
+  "moonpool"
+  "obatcher"
   "odoc" {with-doc}
 ]
 build: [
