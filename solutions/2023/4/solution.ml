@@ -2,28 +2,27 @@ open! Aoc_std
 
 let parser =
   let open Angstrom in
-  many1
-  @@
-  let%mapn winning =
+  let%bind winning =
     string "Card"
     *> spaces
     *> nat
     *> char ':'
     *> commit
     *> many_unique_till (module String) (take 3) (string " |" <* commit)
-  and gotten = many_till (take 3) (end_of_line <|> end_of_input <* commit) in
-  List.count gotten ~f:(Set.mem winning)
+  in
+  count_till (take 3 >>| Set.mem winning) (end_of_line <|> end_of_input) <* commit
 ;;
 
-let part1 =
-  List.sum
-    (module Int)
-    ~f:(function
-      | 0 -> 0
-      | n -> 1 lsl (n - 1))
+let part1 cursor =
+  let open Parallel_iter in
+  of_cursor cursor
+  |> map ~f:(function
+    | 0 -> 0
+    | n -> 1 lsl (n - 1))
+  |> sum
 ;;
 
-let part2 =
+let part2 seq =
   let[@tail_mod_cons] rec add_future_winnings so_far to_be_added times =
     if to_be_added = 0
     then so_far
@@ -33,26 +32,34 @@ let part2 =
       | hd :: tl ->
         (hd + times) :: (add_future_winnings [@tailcall]) tl (to_be_added - 1) times)
   in
-  let f = function
-    | sum, [] -> fun winnings -> sum + 1, add_future_winnings [] winnings 1
-    | sum, hd :: tl ->
-      fun winnings -> sum + 1 + hd, add_future_winnings tl winnings (1 + hd)
+  let f acc winnings =
+    Moonpool.Fut.map acc ~f:(function
+      | sum, [] -> sum + 1, add_future_winnings [] winnings 1
+      | sum, hd :: tl -> sum + 1 + hd, add_future_winnings tl winnings (1 + hd))
   in
-  List.fold ~init:(0, []) ~f >> fst
+  Iter.fold seq ~init:(Moonpool.Fut.return (0, [])) ~f |> Moonpool.await |> fst
 ;;
 
 let%expect_test "sample" =
-  let parsed = parse_string parser Sample.sample in
-  printf "%d" (part1 parsed);
-  [%expect {| 13 |}];
-  printf "%d" (part2 parsed);
-  [%expect {| 30 |}]
+  run
+  @@ fun _ ->
+  let seq, stream =
+    parse_file_into_iter "sample.blob" parser |> Parallel_iter.iter_into_iter_and_stream
+  in
+  let cursor = tap stream in
+  let part1 () = xprintf "%d" (part1 cursor) ~expect:(fun () -> {%expect| 13 |}) in
+  let part2 () = xprintf "%d" (part2 seq) ~expect:(fun () -> {%expect| 30 |}) in
+  fork_join_array [| part1; part2 |]
 ;;
 
 let%expect_test "input" =
-  let parsed = parse_string parser Input.input in
-  printf "%d" (part1 parsed);
-  [%expect {| 21213 |}];
-  printf "%d" (part2 parsed);
-  [%expect {| 8549735 |}]
+  run
+  @@ fun _ ->
+  let seq, stream =
+    parse_file_into_iter "input.blob" parser |> Parallel_iter.iter_into_iter_and_stream
+  in
+  let cursor = tap stream in
+  let part1 () = xprintf "%d" (part1 cursor) ~expect:(fun () -> {%expect| 21213 |}) in
+  let part2 () = xprintf "%d" (part2 seq) ~expect:(fun () -> {%expect| 8549735 |}) in
+  fork_join_array [| part1; part2 |]
 ;;

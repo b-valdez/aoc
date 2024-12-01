@@ -216,15 +216,15 @@ let part2 (vertices_to_next, start, finish) =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 94 |}];
+  {%expect| 94 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 154 |}]
+  {%expect| 154 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 2402 |}];
+  {%expect| 2402 |};
   printf "%d" @@ part2 parsed;
-  [%expect {|  6450 |}]
+  {%expect|  6450 |}
 ;;

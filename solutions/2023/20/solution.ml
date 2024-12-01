@@ -163,19 +163,19 @@ let part2 map target =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 32000000 |}];
+  {%expect| 32000000 |};
   let parsed2 = parse_string parser Sample2.sample2 in
   printf "%d" @@ part1 parsed2;
-  [%expect {| 11687500 |}]
+  {%expect| 11687500 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 818649769 |}];
+  {%expect| 818649769 |};
   printf "%d" @@ List.fold ~init:1 ~f:lcm [ 4057; 3943; 3917; 3931 ];
   (* 246313604784976 too low *)
-  [%expect {| 246313604784977 |}]
+  {%expect| 246313604784977 |}
 ;;
 
 let%expect_test ("input_exploration" [@tags "disabled"]) =

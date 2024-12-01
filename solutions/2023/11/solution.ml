@@ -48,17 +48,17 @@ let part2 = distance_sum ~distance:1_000_000
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 374 |}];
+  {%expect| 374 |};
   printf "%d" @@ distance_sum ~distance:10 parsed;
-  [%expect {| 1030 |}];
+  {%expect| 1030 |};
   printf "%d" @@ distance_sum ~distance:100 parsed;
-  [%expect {| 8410 |}]
+  {%expect| 8410 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 9445168 |}];
+  {%expect| 9445168 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 742305960572 |}]
+  {%expect| 742305960572 |}
 ;;

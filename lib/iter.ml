@@ -5,41 +5,90 @@ let of_map_iteri map_iteri (consume : _ -> unit) : unit =
 ;;
 
 type 'a gen =
-  { next : 'b. 'b -> 'a
-  ; free : unit -> unit
+  { mutable next : unit -> 'a
+  ; mutable free : unit -> unit
   }
 
 let to_gen (type a) (iter : a t) : a gen =
-  let module M = struct
+  let open struct
     type _ Effect.t += Yield : a -> unit Effect.t
-  end
+  end in
+  let yield v = Effect.perform (Yield v) in
+  let rec gen =
+    let next _ =
+      Effect.Deep.match_with
+        iter
+        yield
+        { retc =
+            (fun () -> raise_notrace @@ Core.Not_found_s [%message "No further values"])
+        ; exnc = raise_notrace
+        ; effc =
+            (fun (type b) : (b Effect.t -> _) -> function
+              | Yield (v : a) ->
+                Some
+                  (fun (k : (b, _) Effect.Deep.continuation) ->
+                    gen.free
+                    <- (fun () ->
+                         match Effect.Deep.discontinue k Exit with
+                         | _ | (exception Exit) -> ());
+                    gen.next <- (fun _ -> Effect.Deep.continue k ());
+                    v)
+              | _ -> None)
+        }
+    in
+    { next; free = (fun () -> ()) }
   in
-  let yield v = Effect.perform (M.Yield v) in
-  let free = ref @@ fun () -> () in
-  let rec next =
-    ref
-    @@ fun () ->
+  gen
+;;
+
+type 'a functional_gen =
+  { next : unit -> 'a functional_gen
+  ; free : unit -> 'a functional_gen
+  ; has_next : bool
+  ; latest : ('a, exn) result
+  }
+
+let to_functional_gen (type a) (iter : a t) : a functional_gen =
+  let open struct
+    type _ Effect.t += Yield : a -> unit Effect.t
+  end in
+  let yield v = Effect.perform (Yield v) in
+  let no_next_gen latest =
+    let rec ret =
+      { next = (fun () -> ret); free = (fun () -> ret); has_next = false; latest }
+    in
+    ret
+  in
+  let next () =
     Effect.Deep.match_with
       iter
       yield
       { retc =
-          (fun () -> raise_notrace @@ Core.Not_found_s [%message "No further values"])
-      ; exnc = raise_notrace
+          (fun () ->
+            let exn = Core.Not_found_s [%message "No further values"] in
+            no_next_gen (Error exn))
+      ; exnc = (fun exn -> no_next_gen (Error exn))
       ; effc =
           (fun (type b) : (b Effect.t -> _) -> function
-            | M.Yield (v : a) ->
+            | Yield (v : a) ->
               Some
                 (fun (k : (b, _) Effect.Deep.continuation) ->
-                  (free
-                   := fun () ->
+                  { next = (fun () -> Effect.Deep.continue k ())
+                  ; free =
+                      (fun () ->
                         match Effect.Deep.discontinue k Exit with
-                        | _ | (exception Exit) -> ());
-                  (next := fun () -> Effect.Deep.continue k ());
-                  v)
+                        | _ | (exception Exit) -> no_next_gen (Error Exit))
+                  ; has_next = true
+                  ; latest = Ok v
+                  })
             | _ -> None)
       }
   in
-  { next = (fun _ -> !next ()); free = (fun () -> !free ()) }
+  { next
+  ; free = Fun.const @@ no_next_gen (Error Exit)
+  ; has_next = true
+  ; latest = Error (Invalid_argument "latest before first next")
+  }
 ;;
 
 module Let_syntax = struct

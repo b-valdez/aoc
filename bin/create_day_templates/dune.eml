@@ -1,8 +1,14 @@
-<%# day year %>(library
- (name aoc_<%= year %>_<%= day %>)
+<%# libname %>(library
+ (name <%= libname %>)
  (inline_tests
-  (modes best))
- (modes best)
+  (deps
+   (glob_files *.blob)))
  (preprocess
-  (pps ppx_jane))
+  (pps ppx_jane -expect-test-strict-indentation=true))
+ (modes best)
  (libraries aoc_std))
+
+(alias
+ (name default)
+ (deps
+  (alias runtest)))

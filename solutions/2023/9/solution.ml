@@ -1,5 +1,6 @@
 open! Aoc_std
 
+(* TODO split into part1 and part2 *)
 let extrapolate list =
   let rec extrapolate sgn acc_hd acc_tl seq =
     let hd = List.hd_exn seq in
@@ -18,24 +19,31 @@ let extrapolate list =
 
 let parser =
   let open Angstrom in
-  lines (sep_by1 (char ' ' <* commit) int) >>| List.map ~f:extrapolate
+  sep_by1 (char ' ' <* commit) int
+  >>| extrapolate
+  <* (end_of_line <|> end_of_input)
+  <* commit
 ;;
 
-let part1 = List.sum (module Int) ~f:snd
-let part2 = List.sum (module Int) ~f:fst
+let part1 = Parallel_iter.of_cursor >> Parallel_iter.map ~f:snd >> Parallel_iter.sum
+let part2 = Parallel_iter.of_cursor >> Parallel_iter.map ~f:fst >> Parallel_iter.sum
 
 let%expect_test "sample" =
-  let parsed = parse_string parser Sample.sample in
-  printf "%d" @@ part1 parsed;
-  [%expect {| 114 |}];
-  printf "%d" @@ part2 parsed;
-  [%expect {| 2 |}]
+  run
+  @@ fun _ ->
+  let cursor = parse_file_into_stream "sample.blob" parser |> tap in
+  let part1 () = xprintf "%d" (part1 cursor) ~expect:(fun () -> {%expect| 114 |}) in
+  let part2 () = xprintf "%d" (part2 cursor) ~expect:(fun () -> {%expect| 2 |}) in
+  fork_join_array [| part1; part2 |]
 ;;
 
 let%expect_test "input" =
-  let parsed = parse_string parser Input.input in
-  printf "%d" @@ part1 parsed;
-  [%expect {| 1584748274 |}];
-  printf "%d" @@ part2 parsed;
-  [%expect {| 1026 |}]
+  run
+  @@ fun _ ->
+  let cursor = parse_file_into_stream "input.blob" parser |> tap in
+  let part1 () =
+    xprintf "%d" (part1 cursor) ~expect:(fun () -> {%expect| 1584748274 |})
+  in
+  let part2 () = xprintf "%d" (part2 cursor) ~expect:(fun () -> {%expect| 1026 |}) in
+  fork_join_array [| part1; part2 |]
 ;;

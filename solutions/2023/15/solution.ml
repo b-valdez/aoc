@@ -62,7 +62,7 @@ let focussing_power =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   print_s @@ [%sexp_of: int list] @@ part1 parsed;
-  [%expect {| (30 253 97 47 14 180 9 197 48 214 231) |}];
+  {%expect| (30 253 97 47 14 180 9 197 48 214 231) |};
   let part2 = part2 parsed in
   print_s @@ [%sexp_of: (string * int) list array] @@ part2;
   [%expect
@@ -79,13 +79,13 @@ let%expect_test "sample" =
      () () () () () () () () () () () () () () () () () () () () () () () () ()
      () () () () () () () () () () () () () () () () ()) |}];
   printf "%d" @@ focussing_power part2;
-  [%expect {| 145 |}]
+  {%expect| 145 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ List.sum (module Int) (part1 parsed) ~f:Fn.id;
-  [%expect {| 505459 |}];
+  {%expect| 505459 |};
   printf "%d" @@ focussing_power (part2 parsed);
-  [%expect {| 228508 |}]
+  {%expect| 228508 |}
 ;;

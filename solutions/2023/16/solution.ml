@@ -167,7 +167,7 @@ let part2 grid =
       Set.of_increasing_iterator_unchecked
         (module Comparator)
         ~len:(2 * (height grid + width grid))
-        ~f:iterator.next
+        ~f:(fun _ -> iterator.next ())
     in
     iterator.free ();
     result
@@ -191,15 +191,15 @@ let part2 grid =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 46 |}];
+  {%expect| 46 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 51 |}]
+  {%expect| 51 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 6816 |}];
+  {%expect| 6816 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 8163 |}]
+  {%expect| 8163 |}
 ;;

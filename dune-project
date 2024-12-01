@@ -20,13 +20,3 @@
   obatcher))
 
 (implicit_transitive_deps false)
-
-(generate_opam_files)
-
-(dialect
- (name bundle_blob)
- (implementation
-  ; .blob are our inputs
-  (extension blob)
-  (preprocess
-   (run bundle_blob %{input-file}))))

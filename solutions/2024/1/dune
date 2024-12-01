@@ -1,5 +1,5 @@
 (library
- (name aoc_2023_2)
+ (name aoc_2024_1)
  (inline_tests
   (deps
    (glob_files *.blob)))
@@ -7,3 +7,8 @@
   (pps ppx_jane -expect-test-strict-indentation=true))
  (modes best)
  (libraries aoc_std))
+
+(alias
+ (name default)
+ (deps
+  (alias runtest)))

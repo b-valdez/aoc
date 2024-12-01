@@ -83,15 +83,15 @@ let part2 =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 405 |}];
+  {%expect| 405 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 400 |}]
+  {%expect| 400 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 27300 |}];
+  {%expect| 27300 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 29276 |}]
+  {%expect| 29276 |}
 ;;

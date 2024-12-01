@@ -104,7 +104,7 @@ let part2 hailstones =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed (7, 27);
-  [%expect {| 2 |}];
+  {%expect| 2 |};
   print_s @@ [%sexp_of: float * float * float * float * float * float] @@ part2 parsed;
   [%expect
     {|
@@ -112,13 +112,13 @@ let%expect_test "sample" =
     (23.999999999999996 13.000000000000007 10.000000000000018 -2.9999999999999987
      0.99999999999999822 1.9999999999999938) |}];
   printf "%b" @@ part2_verify parsed (24, 13, 10) (-3, 1, 2) [ 5; 3; 4; 6; 1 ];
-  [%expect {| true |}]
+  {%expect| true |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed (200000000000000, 400000000000000);
-  [%expect {| 12783 |}];
+  {%expect| 12783 |};
   print_s @@ [%sexp_of: float * float * float * float * float * float] @@ part2 parsed;
   [%expect
     {|
@@ -128,14 +128,14 @@ let%expect_test "input" =
   print_s
   @@ [%sexp_of: int * int * int]
   @@ pos_at (fst (List.hd_exn parsed)) (snd (List.hd_exn parsed)) 962702686958;
-  [%expect {| (136895489244986 305415083930838 339627684949861) |}];
+  {%expect| (136895489244986 305415083930838 339627684949861) |};
   print_s
   @@ [%sexp_of: int * int * int]
   @@ pos_at
        (454587375941126, 244764814652484, 249133632375809)
        (-330, 63, 94)
        962702686958;
-  [%expect {| (136895489244986 305415083930838 339627684949861) |}];
+  {%expect| (136895489244986 305415083930838 339627684949861) |};
   printf "%d" @@ (454587375941126 + 244764814652484 + 249133632375809);
-  [%expect {| 948485822969419 |}]
+  {%expect| 948485822969419 |}
 ;;

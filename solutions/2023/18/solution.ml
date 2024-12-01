@@ -136,15 +136,15 @@ let part2 = List.map ~f:snd >> trench >> lagoon_size
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 62 |}];
+  {%expect| 62 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 952408144115 |}]
+  {%expect| 952408144115 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 35991 |}];
+  {%expect| 35991 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 54058824661845 |}]
+  {%expect| 54058824661845 |}
 ;;

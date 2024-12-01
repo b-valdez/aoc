@@ -42,17 +42,32 @@ let solve =
 ;;
 
 let%expect_test "sample" =
-  let open Sample in
-  printf "%d" (solve (parse_string parse1 sample));
-  [%expect {| 288 |}];
-  printf "%d" (solve (parse_string parse2 sample));
-  [%expect {| 71503 |}]
+  let sample = Stdio.In_channel.read_all "sample.blob" in
+  let part1 () =
+    xprintf "%d" (solve (parse_string parse1 sample)) ~expect:(fun () -> {%expect| 288 |})
+  in
+  let part2 () =
+    xprintf
+      "%d"
+      (solve (parse_string parse2 sample))
+      ~expect:(fun () -> {%expect| 71503 |})
+  in
+  run @@ fun () -> fork_join_array [| part1; part2 |]
 ;;
 
 let%expect_test "input" =
-  let open Input in
-  printf "%d" (solve (parse_string parse1 input));
-  [%expect {| 588588 |}];
-  printf "%d" (solve (parse_string parse2 input));
-  [%expect {| 34655848 |}]
+  let input = Stdio.In_channel.read_all "input.blob" in
+  let part1 () =
+    xprintf
+      "%d"
+      (solve (parse_string parse1 input))
+      ~expect:(fun () -> {%expect| 588588 |})
+  in
+  let part2 () =
+    xprintf
+      "%d"
+      (solve (parse_string parse2 input))
+      ~expect:(fun () -> {%expect| 34655848 |})
+  in
+  run @@ fun () -> fork_join_array [| part1; part2 |]
 ;;

@@ -4,4 +4,4 @@
   (modes byte))
  (preprocess
   (pps ppx_expect))
- (libraries aoc_std moonpool moonpool.fib picos_std.structured))
+ (libraries aoc_std moonpool moonpool.fib))

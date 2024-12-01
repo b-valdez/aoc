@@ -19,15 +19,15 @@ val many1_till : 'a t -> 'b t -> 'a list t
 val many_unique
   :  ('a, 'b) Core.Comparator.Module.t
   -> 'a Angstrom.t
-  -> ('a, 'b) Base.Set.t t
+  -> ('a, 'b) Core.Set.t t
 
-val many_unique1 : ('a, 'b) Core.Comparator.Module.t -> 'a t -> ('a, 'b) Base.Set.t t
+val many_unique1 : ('a, 'b) Core.Comparator.Module.t -> 'a t -> ('a, 'b) Core.Set.t t
 
 val many_unique_till
   :  ('a, 'b) Core.Comparator.Module.t
   -> 'a t
   -> 'c t
-  -> ('a, 'b) Base.Set.t t
+  -> ('a, 'b) Core.Set.t t
 
 val pair : ?sep:unit t -> 'a t -> ('a, 'a) Core.Tuple2.t t
 val triple : ?sep:unit t -> 'a t -> ('a, 'a, 'a) Core.Tuple3.t t
@@ -45,5 +45,7 @@ val tf_grid_lazy : bool array array t
 val sparse_tf_grid
   : ( Core.Tuple.Make(Core.Int)(Core.Int).t
       , Core.Tuple.Comparator(Core.Int)(Core.Int).comparator_witness )
-      Base.Set.t
+      Core.Set.t
       t
+
+val count_till : bool t -> _ t -> int t

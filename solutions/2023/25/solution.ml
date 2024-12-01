@@ -115,11 +115,11 @@ let part1 adjacency_lists =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 54 |}]
+  {%expect| 54 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 562912 |}]
+  {%expect| 562912 |}
 ;;

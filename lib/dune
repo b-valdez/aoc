@@ -3,17 +3,36 @@
  (package aoc)
  (synopsis "a standard library, modified and extended from core")
  (preprocess
-  (pps ppx_jane))
+  (pps ppx_jane ppx_deriving.enum))
  (libraries
   iter
+  bin_prot.shape
   (re_export core)
+  core.validate
   angstrom
   core_kernel.composition_infix
   psq
-  obatcher
-  obatcher.ds
   picos
   picos_std.structured
-  picos_std.sync
+  (re_export picos_std.sync)
+  picos_std.finally
+  picos_std.event
   (re_export base)
-  (re_export ppx_expect.config_types)))
+  (re_export ppx_expect.config_types)
+  multicore-magic
+  stdio
+  backoff
+  sexplib0
+  (re_export sexplib)
+  ppx_diff.diffable
+  bigstringaf
+  (re_export base_bigstring)
+  (re_export moonpool)
+  (re_export moonpool.dpool)
+  (re_export moonpool.fib)
+  (re_export moonpool.forkjoin)
+  (re_export moonpool.sync)
+  core.filename_base
+  (re_export threads)
+  core_kernel.caml_threads
+  unix))

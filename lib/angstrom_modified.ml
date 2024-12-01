@@ -134,3 +134,14 @@ let sparse_tf_grid =
   >>| fst
   <?> "sparse_tf_grid"
 ;;
+
+let count_till p stop =
+  let rec count_till_from i =
+    stop *> return i
+    <|> (p
+         >>= function
+         | true -> count_till_from (i + 1)
+         | false -> count_till_from i)
+  in
+  count_till_from 0 <?> "count_till"
+;;

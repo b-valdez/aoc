@@ -1,4 +1,4 @@
 (alias
  (name default)
  (deps
-  (alias_rec solutions/runtest)))
+  (alias_rec solutions/2024/runtest)))

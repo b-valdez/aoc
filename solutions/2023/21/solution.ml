@@ -112,19 +112,19 @@ let part2 (start, grid) steps =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed 6;
-  [%expect {| 16 |}];
+  {%expect| 16 |};
   printf "%d" @@ part2 parsed 50;
-  [%expect {| 1594 |}];
+  {%expect| 1594 |};
   printf "%d" @@ part2 parsed 100;
-  [%expect {| 6536 |}];
+  {%expect| 6536 |};
   printf "%d" @@ part2 parsed 5000;
-  [%expect {| 16733044 |}]
+  {%expect| 16733044 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed 64;
-  [%expect {| 3758 |}];
+  {%expect| 3758 |};
   printf "%d" @@ part2 parsed steps;
-  [%expect {| 621494544278648 |}]
+  {%expect| 621494544278648 |}
 ;;

@@ -1,16 +1,16 @@
 open! Aoc_std
 
+let parse_prefix =
+  let open Angstrom in
+  string "seeds: " *> sep_by1 (char ' ') nat <* count 2 end_of_line <* commit
+;;
+
 let parser =
   let open Angstrom in
-  let%mapn seeds =
-    string "seeds: " *> sep_by1 (char ' ') nat <* count 2 end_of_line <* commit
-  and maps =
-    pair ~sep:(skip_string "-to-") any_word
-    *> string " map:\n"
-    *> (triple ~sep:space nat |> lines_lazy)
-    |> blocks
-  in
-  seeds, maps
+  pair ~sep:(skip_string "-to-") any_word
+  *> string " map:\n"
+  *> (triple ~sep:space nat |> lines_lazy)
+  <* (count 2 end_of_line *> commit <|> end_of_input)
 ;;
 
 let map maps x =
@@ -21,8 +21,11 @@ let map maps x =
   |> Option.value ~default:x
 ;;
 
-let part1 (seeds, maps) =
-  List.fold maps ~init:seeds ~f:(fun sources map_def -> List.map ~f:(map map_def) sources)
+let part1 seeds maps =
+  let open Moonpool in
+  Iter.fold maps ~init:(Fut.return seeds) ~f:(fun sources map_def ->
+    Fut.map sources ~f:(List.map ~f:(map map_def)))
+  |> Fut.await
   |> List.min_elt ~compare:[%compare: int]
   |> Option.value_exn
 ;;
@@ -59,7 +62,7 @@ let[@tail_mod_cons] rec normalize = function
     { range1 with end_exclusive } :: normalize set
 ;;
 
-let apply_maps set maps =
+let apply_maps maps set =
   let boundaries =
     List.fold maps ~init:[] ~f:(fun acc (_, source_range_start, length) ->
       List.sort ((source_range_start + length) :: source_range_start :: acc) ~compare)
@@ -89,7 +92,7 @@ let min_elt =
   >> Option.map ~f:(fun { start_inclusive; _ } -> start_inclusive)
 ;;
 
-let part2 (seeds, maps) =
+let part2 seeds maps =
   let _, seeds =
     List.fold seeds ~init:(None, []) ~f:(fun acc seen ->
       match acc with
@@ -104,23 +107,64 @@ let part2 (seeds, maps) =
            (Comparable.lift compare ~f:(fun { start_inclusive; _ } -> start_inclusive))
     |> normalize
   in
-  List.fold maps ~init:seeds ~f:apply_maps |> min_elt |> Option.value_exn
+  let open Moonpool in
+  Iter.fold maps ~init:(Fut.return seeds) ~f:(fun fut map ->
+    Fut.map fut ~f:(apply_maps map))
+  |> await
+  |> min_elt
+  |> Option.value_exn
 ;;
 
+type _ Effect.t += Yield : (int * int * int) list -> wrap Effect.t
+
 let%expect_test "sample" =
-  let open Sample in
-  let parsed = parse_string parser sample in
-  printf "%d" (part1 parsed);
-  [%expect {| 35 |}];
-  printf "%d" (part2 parsed);
-  [%expect {| 46 |}]
+  run
+  @@ fun () ->
+  let seeds, fiber = parse_file_prefix "sample.blob" parse_prefix in
+  let maps f =
+    Effect.Deep.try_with
+      (Effect.Shallow.continue_with fiber (Wrap (parser, fun el -> Yield el)))
+      { retc = Fun.id; exnc = raise; effc = (fun _ -> None) }
+      { effc =
+          (fun (type a) -> function
+            | (Yield map : a Effect.t) ->
+              Some
+                (fun (k : (a, _) Effect.Deep.continuation) ->
+                  f map;
+                  Effect.Deep.continue k (Wrap (parser, fun el -> Yield el)))
+            | _ -> None)
+      }
+  in
+  let maps1, maps2 = tee_iter maps in
+  let part1 () = xprintf "%d" (part1 seeds maps1) ~expect:(fun () -> {%expect| 35 |}) in
+  let part2 () = xprintf "%d" (part2 seeds maps2) ~expect:(fun () -> {%expect| 46 |}) in
+  fork_join_array [| part1; part2 |]
 ;;
 
 let%expect_test "input" =
-  let open Input in
-  let parsed = parse_string parser input in
-  printf "%d" (part1 parsed);
-  [%expect {| 462648396 |}];
-  printf "%d" (part2 parsed);
-  [%expect {| 2520479 |}]
+  run
+  @@ fun () ->
+  let seeds, fiber = parse_file_prefix "input.blob" parse_prefix in
+  let maps f =
+    Effect.Deep.try_with
+      (Effect.Shallow.continue_with fiber (Wrap (parser, fun el -> Yield el)))
+      { retc = Fun.id; exnc = raise; effc = (fun _ -> None) }
+      { effc =
+          (fun (type a) -> function
+            | (Yield map : a Effect.t) ->
+              Some
+                (fun (k : (a, _) Effect.Deep.continuation) ->
+                  f map;
+                  Effect.Deep.continue k (Wrap (parser, fun el -> Yield el)))
+            | _ -> None)
+      }
+  in
+  let maps1, maps2 = tee_iter maps in
+  let part1 () =
+    xprintf "%d" (part1 seeds maps1) ~expect:(fun () -> {%expect| 462648396 |})
+  in
+  let part2 () =
+    xprintf "%d" (part2 seeds maps2) ~expect:(fun () -> {%expect| 2520479 |})
+  in
+  fork_join_array [| part1; part2 |]
 ;;

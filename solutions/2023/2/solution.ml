@@ -34,48 +34,55 @@ let parser =
     and draws = sep_by1 (string "; " <* commit) draw in
     id, draws
   in
-  lines line
+  line <* (end_of_line <|> end_of_input)
 ;;
 
-let part1 =
-  List.sum
-    (module Int)
-    ~f:(fun (id, draws) ->
-      if List.for_all draws ~f:(fun { red; green; blue } ->
-           red <= 12 && green <= 13 && blue <= 14)
-      then id
-      else 0)
+let part1 cursor =
+  let open Parallel_iter in
+  cursor
+  |> of_cursor
+  |> map ~f:(fun (id, draws) ->
+    if List.for_all draws ~f:(fun { red; green; blue } ->
+         red <= 12 && green <= 13 && blue <= 14)
+    then id
+    else 0)
+  |> sum ~padded:true
 ;;
 
 let power { red; green; blue } = red * green * blue
 
-let part2 parsed =
-  List.sum
-    (module Int)
-    ~f:(fun (_, draws) ->
-      List.fold_left
-        draws
-        ~init:{ red = 0; green = 0; blue = 0 }
-        ~f:(fun acc { red; green; blue } ->
-          { red = max red acc.red; green = max green acc.green; blue = max blue acc.blue })
-      |> power)
-    parsed
+let part2 cursor =
+  let open Parallel_iter in
+  cursor
+  |> of_cursor
+  |> map ~f:(fun (_, draws) ->
+    List.fold_left
+      draws
+      ~init:{ red = 0; green = 0; blue = 0 }
+      ~f:(fun acc { red; green; blue } ->
+        { red = max red acc.red; green = max green acc.green; blue = max blue acc.blue })
+    |> power)
+  |> sum
 ;;
 
 let%expect_test "example" =
-  let parsed =
-    Angstrom.parse_string ~consume:All parser Sample.sample |> Result.ok_or_failwith
-  in
-  printf !"%{Int}" @@ part1 parsed;
-  [%expect {| 8 |}];
-  printf !"%{Int}" @@ part2 parsed;
-  [%expect {| 2286 |}]
+  run
+  @@ fun () ->
+  let cursor = parse_file_into_stream "sample.blob" parser |> tap in
+  let part1 () = xprintf !"%{Int}" (part1 cursor) ~expect:(fun () -> {%expect| 8 |}) in
+  let part2 () = xprintf !"%{Int}" (part2 cursor) ~expect:(fun () -> {%expect| 2286 |}) in
+  fork_join_array [| part1; part2 |]
 ;;
 
 let%expect_test "input" =
-  let parsed = parse_string parser Input.input in
-  printf !"%{Int}" @@ part1 parsed;
-  [%expect {| 2285 |}];
-  printf !"%{Int}" @@ part2 parsed;
-  [%expect {| 77021 |}]
+  run
+  @@ fun () ->
+  let cursor = parse_file_into_stream "input.blob" parser |> tap in
+  let do_part1 () =
+    xprintf !"%{Int}" (part1 cursor) ~expect:(fun () -> {%expect| 2285 |})
+  in
+  let do_part2 () =
+    xprintf !"%{Int}" (part2 cursor) ~expect:(fun () -> {%expect| 77021 |})
+  in
+  fork_join_array [| do_part1; do_part2 |]
 ;;

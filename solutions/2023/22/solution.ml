@@ -175,15 +175,15 @@ let part2 bricks =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 5 |}];
+  {%expect| 5 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 7 |}]
+  {%expect| 7 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 495 |}];
+  {%expect| 495 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 76158 |}]
+  {%expect| 76158 |}
 ;;

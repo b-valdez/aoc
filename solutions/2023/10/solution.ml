@@ -150,15 +150,15 @@ let part2 (start, grid, loop) =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 8 |}];
+  {%expect| 8 |};
   printf "%d" @@ part2 @@ parse_string parser Sample2.sample2;
-  [%expect {| 10 |}]
+  {%expect| 10 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 6942 |}];
+  {%expect| 6942 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 297 |}]
+  {%expect| 297 |}
 ;;

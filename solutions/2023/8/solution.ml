@@ -46,6 +46,7 @@ let part2 (directions, nodes) =
     else (next, steps + 1), `Stop
   in
   let start_positions = Map.keys nodes |> List.filter ~f:(String.is_suffix ~suffix:"A") in
+  (* TODO use the loopfinding from Util? *)
   let find_loop start =
     let _, loop_start =
       Iter.fold_while directions ~init:(start, 0) ~f:(fun (pos, steps) direction ->
@@ -60,24 +61,51 @@ let part2 (directions, nodes) =
     in
     loop_start
   in
-  List.map start_positions ~f:find_loop |> List.fold ~init:1 ~f:lcm
+  let result = Moonpool.Atomic.make_contended 1 in
+  let backoff = Backoff.default in
+  let rec atomic_lcm acc lcm_me backoff =
+    let acc = lcm acc lcm_me in
+    let acc = Moonpool.Atomic.exchange result acc in
+    if acc mod lcm_me <> 0
+    then (
+      let backoff = Backoff.once backoff in
+      atomic_lcm acc lcm_me backoff)
+  in
+  Parallel_iter.from_labelled_iter (List.iter start_positions)
+  |> Parallel_iter.map ~f:find_loop
+  |> Parallel_iter.iter ~f:(fun i ->
+    let acc = Multicore_magic.fenceless_get result in
+    atomic_lcm acc i backoff);
+  Multicore_magic.fenceless_get result
 ;;
 
 let%expect_test "sample" =
-  let parsed = parse_string parser Sample.sample in
-  let parsed2 = parse_string parser Sample2.sample2 in
-  printf "%d" @@ part1 parsed;
-  [%expect {| 2 |}];
-  printf "%d" @@ part1 parsed2;
-  [%expect {| 6 |}];
-  printf "%d" @@ part2 @@ parse_string parser Sample3.sample3;
-  [%expect {| 6 |}]
+  run
+  @@ fun _ ->
+  let part1a () =
+    let parsed = parse_file "sample.blob" parser in
+    xprintf "%d" (part1 parsed) ~expect:(fun () -> {%expect| 2 |})
+  in
+  let part1b () =
+    let parsed2 = parse_file "sample2.blob" parser in
+    xprintf "%d" (part1 parsed2) ~expect:(fun () -> {%expect| 6 |})
+  in
+  let part2 () =
+    xprintf
+      "%d"
+      (part2 @@ parse_file "sample3.blob" parser)
+      ~expect:(fun () -> {%expect| 6 |})
+  in
+  fork_join_array [| part1a; part1b; part2 |]
 ;;
 
 let%expect_test "input" =
-  let parsed = parse_string parser Input.input in
-  printf "%d" @@ part1 parsed;
-  [%expect {| 20777 |}];
-  printf "%d" @@ part2 parsed;
-  [%expect {| 13289612809129 |}]
+  run
+  @@ fun _ ->
+  let parsed = parse_file "input.blob" parser in
+  let part1 () = xprintf "%d" (part1 parsed) ~expect:(fun () -> {%expect| 20777 |}) in
+  let part2 () =
+    xprintf "%d" (part2 parsed) ~expect:(fun () -> {%expect| 13289612809129 |})
+  in
+  fork_join_array [| part1; part2 |]
 ;;

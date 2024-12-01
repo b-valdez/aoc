@@ -201,15 +201,15 @@ let part2 (workflows, _) =
 let%expect_test "sample" =
   let parsed = parse_string parser Sample.sample in
   printf "%d" @@ part1 parsed;
-  [%expect {| 19114 |}];
+  {%expect| 19114 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 167409079868000 |}]
+  {%expect| 167409079868000 |}
 ;;
 
 let%expect_test "input" =
   let parsed = parse_string parser Input.input in
   printf "%d" @@ part1 parsed;
-  [%expect {| 342650 |}];
+  {%expect| 342650 |};
   printf "%d" @@ part2 parsed;
-  [%expect {| 130303473508222 |}]
+  {%expect| 130303473508222 |}
 ;;
