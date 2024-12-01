@@ -5,14 +5,14 @@ let parser =
   let%map galaxies = sparse_tf_grid in
   let open Iter in
   let empty_rows =
-    0 -- (Core.Set.iter galaxies |> from_labelled_iter |> map ~f:snd |> max_exn ~lt:( < ))
-    |> filter ~f:(fun y -> Core.Set.for_all galaxies ~f:(fun (_, y') -> y <> y'))
+    0 -- (Set.iter galaxies |> from_labelled_iter |> map ~f:snd |> max_exn ~lt:( < ))
+    |> filter ~f:(fun y -> Set.for_all galaxies ~f:(fun (_, y') -> y <> y'))
     |> to_array
     |> Int.Set.of_sorted_array_unchecked
   in
   let empty_cols =
-    0 -- (Core.Set.iter galaxies |> from_labelled_iter |> map ~f:fst |> max_exn ~lt:( < ))
-    |> filter ~f:(fun x -> Core.Set.for_all galaxies ~f:(fun (x', _) -> x <> x'))
+    0 -- (Set.iter galaxies |> from_labelled_iter |> map ~f:fst |> max_exn ~lt:( < ))
+    |> filter ~f:(fun x -> Set.for_all galaxies ~f:(fun (x', _) -> x <> x'))
     |> to_array
     |> Int.Set.of_sorted_array_unchecked
   in
@@ -21,13 +21,13 @@ let parser =
 
 let distance_sum ~distance (galaxies, empty_rows, empty_cols) =
   let open Iter in
-  let iterate_galaxies = Core.Set.iter galaxies |> from_labelled_iter in
+  let iterate_galaxies = Set.iter galaxies |> from_labelled_iter in
   let galaxy_pairs =
     iterate_galaxies
     |> flat_map ~f:(fun g ->
-      Core.Set.split_lt_ge galaxies g
+      Set.split_lt_ge galaxies g
       |> snd
-      |> Core.Set.iter
+      |> Set.iter
       |> from_labelled_iter
       >|= Tuple2.create g)
   in
@@ -36,10 +36,10 @@ let distance_sum ~distance (galaxies, empty_rows, empty_cols) =
     sum
     + x'
     - x
-    + ((distance - 1) * Core.Set.count empty_cols ~f:(Int.between ~low:x ~high:x'))
+    + ((distance - 1) * Set.count empty_cols ~f:(Int.between ~low:x ~high:x'))
     + y'
     - y
-    + ((distance - 1) * Core.Set.count empty_rows ~f:(Int.between ~low:y ~high:y')))
+    + ((distance - 1) * Set.count empty_rows ~f:(Int.between ~low:y ~high:y')))
 ;;
 
 let part1 = distance_sum ~distance:2

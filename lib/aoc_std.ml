@@ -1,7 +1,6 @@
 (** {2 Iter} *)
 
 module Iter = Iter
-module Parallel_iter = Parallel_iter
 
 (** {2 Core} *)
 
@@ -18,6 +17,8 @@ include Composition_infix (** @inline *)
 module Angstrom = Angstrom_modified
 
 (** {2 Added for AOC} *)
+
+module Parallel_iter = Parallel_iter
 
 module Grid = Grid
 

@@ -9,11 +9,7 @@
   shexp.process
   core
   core.command
-  core.univ_map
-  embedded_ocaml_templates.EML_runtime
-  base
-  posixat
-  time_now))
+  embedded_ocaml_templates.EML_runtime))
 
 (data_only_dirs day_template)
 

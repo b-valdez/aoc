@@ -1,4 +1,4 @@
-(lang dune 3.16)
+(lang dune 3.17)
 
 (name aoc)
 
@@ -9,6 +9,7 @@
   core_kernel
   iter
   ppx_jane
+  ppx_deriving
   re
   string_dict
   angstrom
@@ -17,6 +18,8 @@
   dune
   shexp
   moonpool
-  obatcher))
+  picos
+  picos_std_sync
+  embedded_ocaml_templates))
 
 (implicit_transitive_deps false)

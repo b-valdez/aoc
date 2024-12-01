@@ -83,7 +83,7 @@ let part1 (_, _, loop) =
 
 let part2 (start, grid, loop) =
   let loop_pipes =
-    Set.of_list (module Tuple.Comparator (Core.Int) (Core.Int)) (loop |> List.map ~f:snd)
+    Set.of_list (module Tuple.Comparator (Int) (Int)) (loop |> List.map ~f:snd)
   in
   let start_pipe =
     let connected_to_north =
@@ -126,7 +126,7 @@ let part2 (start, grid, loop) =
         ~init:(count, true, None)
         ~f:(fun (count, is_outside, seen) y ->
           let on_pipe =
-            Core.Set.mem loop_pipes (x, y) || [%equal: int * int] start (x, y)
+            Set.mem loop_pipes (x, y) || [%equal: int * int] start (x, y)
           in
           let next_is_outside, next_seen =
             if on_pipe

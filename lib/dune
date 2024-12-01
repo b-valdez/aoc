@@ -6,33 +6,14 @@
   (pps ppx_jane ppx_deriving.enum))
  (libraries
   iter
-  bin_prot.shape
-  (re_export core)
-  core.validate
+  core
   angstrom
   core_kernel.composition_infix
   psq
   picos
-  picos_std.structured
-  (re_export picos_std.sync)
-  picos_std.finally
-  picos_std.event
-  (re_export base)
-  (re_export ppx_expect.config_types)
-  multicore-magic
-  stdio
-  backoff
-  sexplib0
-  (re_export sexplib)
-  ppx_diff.diffable
-  bigstringaf
-  (re_export base_bigstring)
+  picos_std.sync
   (re_export moonpool)
-  (re_export moonpool.dpool)
-  (re_export moonpool.fib)
-  (re_export moonpool.forkjoin)
-  (re_export moonpool.sync)
-  core.filename_base
-  (re_export threads)
-  core_kernel.caml_threads
-  unix))
+  moonpool.fib
+  moonpool.forkjoin
+  moonpool.sync
+  core_kernel.caml_threads))
