@@ -69,7 +69,6 @@ let main =
           >> stdout_to "dune" (echo ~n:() @@ Create_day_templates.dune libname)
           >> stdout_to "solution.ml" (echo ~n:() @@ Create_day_templates.solution)
           >> stdout_to "test.ml" (echo ~n:() @@ Create_day_templates.test)
-          >> stdout_to (libname ^ ".ml") (echo "(* this file intentionally left blank *)")
          )
   in
   chdir dune_root (mkchdir "solutions" (mkchdir year (create_day day)))
