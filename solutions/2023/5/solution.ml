@@ -135,7 +135,7 @@ let%expect_test "sample" =
             | _ -> None)
       }
   in
-  let maps1, maps2 = tee_iter maps in
+  let[@warning "-8"] [| maps1; maps2 |] = tee_iter maps ~n:2 in
   let part1 () = xprintf "%d" (part1 seeds maps1) ~expect:(fun () -> {%expect| 35 |}) in
   let part2 () = xprintf "%d" (part2 seeds maps2) ~expect:(fun () -> {%expect| 46 |}) in
   fork_join_array [| part1; part2 |]
@@ -159,7 +159,7 @@ let%expect_test "input" =
             | _ -> None)
       }
   in
-  let maps1, maps2 = tee_iter maps in
+  let[@warning "-8"] [| maps1; maps2 |] = tee_iter maps ~n:2 in
   let part1 () =
     xprintf "%d" (part1 seeds maps1) ~expect:(fun () -> {%expect| 462648396 |})
   in

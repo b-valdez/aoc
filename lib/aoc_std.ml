@@ -217,22 +217,55 @@ let xprint_mutex = Mutex.create ()
 let xprintf = mxprintf xprint_mutex
 let xprint_s = mxprint_s xprint_mutex
 
-(* TODO error-handling, otherwise some iter functions won't work *)
-let tee_iter seq =
+let tee_iter seq ~n =
   let open Moonpool in
-  let k1, set_k1 = Fut.make () in
-  let k2, set_k2 = Fut.make () in
-  let run =
+  let k_array = Array.init n ~f:(fun _ -> Fut.make (), Fut.make ()) in
+  let _ =
     Fut.spawn_on_current_runner (fun () ->
-      let k1 = await k1 in
-      let k2 = await k2 in
-      seq (fun el ->
-        k1 el;
-        k2 el))
+      await @@ Fut.wait_array (Array.map k_array ~f:(fun ((k, _), _) -> k));
+      Iter.fold
+        seq
+        ~init:
+          (Array.map k_array ~f:(fun ((k, _), (_, return)) ->
+             Fut.get_or_fail_exn k, return))
+        ~f:(fun k_array el ->
+          if Array.is_empty k_array then raise_notrace Shutdown;
+          Array.filter k_array ~f:(fun (k, return) ->
+            match k el with
+            | () -> true
+            | exception exn ->
+              Fut.fulfill return (Error (Exn_bt.get exn));
+              false))
+      |> Array.iter ~f:(fun (_, return) -> Fut.fulfill return (Ok ())))
   in
-  let fulfill set k =
-    Fut.fulfill set (Ok k);
-    await run
+  Array.map k_array ~f:(fun ((_, set_k), (result, _)) k ->
+    Fut.fulfill set_k (Ok k);
+    await result)
+;;
+
+let tee_parallel_iter seq ~n =
+  let open Moonpool in
+  let k_array =
+    Array.init n ~f:(fun _ -> Fut.make (), Picos.Computation.create ~mode:`LIFO ())
   in
-  fulfill set_k1, fulfill set_k2
+  let _ =
+    Fut.spawn_on_current_runner (fun () ->
+      await @@ Fut.wait_array (Array.map k_array ~f:(fun ((k, _), _) -> k));
+      Parallel_iter.fold
+        seq
+        ~init:
+          (Array.map k_array ~f:(fun ((k, _), return) -> Fut.get_or_fail_exn k, return))
+        ~f:(fun k_array el ->
+          if Array.is_empty k_array then raise_notrace Shutdown;
+          Array.filter k_array ~f:(fun (k, return) ->
+            match k el with
+            | () -> true
+            | exception exn ->
+              Picos.Computation.cancel return exn (Stdlib.Printexc.get_callstack 0);
+              false))
+      |> Array.iter ~f:(fun (_, return) -> Picos.Computation.finish return))
+  in
+  Array.map k_array ~f:(fun ((_, set_k), result) k ->
+    Fut.fulfill set_k (Ok k);
+    result)
 ;;
