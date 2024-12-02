@@ -125,9 +125,7 @@ let part2 (start, grid, loop) =
         (0 -- (height grid - 1))
         ~init:(count, true, None)
         ~f:(fun (count, is_outside, seen) y ->
-          let on_pipe =
-            Set.mem loop_pipes (x, y) || [%equal: int * int] start (x, y)
-          in
+          let on_pipe = Set.mem loop_pipes (x, y) || [%equal: int * int] start (x, y) in
           let next_is_outside, next_seen =
             if on_pipe
             then (

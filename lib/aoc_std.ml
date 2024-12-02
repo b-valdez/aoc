@@ -19,7 +19,6 @@ module Angstrom = Angstrom_modified
 (** {2 Added for AOC} *)
 
 module Parallel_iter = Parallel_iter
-
 module Grid = Grid
 
 let parse_string parser =

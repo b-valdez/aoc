@@ -68,8 +68,7 @@ let main =
           >> stdout_to "input.blob" (echo ~n:() "")
           >> stdout_to "dune" (echo ~n:() @@ Create_day_templates.dune libname)
           >> stdout_to "solution.ml" (echo ~n:() @@ Create_day_templates.solution)
-          >> stdout_to "test.ml" (echo ~n:() @@ Create_day_templates.test)
-         )
+          >> stdout_to "test.ml" (echo ~n:() @@ Create_day_templates.test))
   in
   chdir dune_root (mkchdir "solutions" (mkchdir year (create_day day)))
 ;;
