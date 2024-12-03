@@ -1,13 +1,13 @@
 open! Core
 
 let detect_loop_with_affine_accumulator
-  ?size
-  state_module
-  ~f
-  ~init_state
-  ~init_acc
-  ~skip_to
-  ~compute_final_accumulator
+      ?size
+      state_module
+      ~f
+      ~init_state
+      ~init_acc
+      ~skip_to
+      ~compute_final_accumulator
   =
   let visited = Hashtbl.create ?size state_module in
   let rec aux iteration current current_accumulator =
@@ -60,13 +60,13 @@ let detect_loop_and_skip_to_mapped ?size ~map ~unmap state_module ~f ~init ~skip
 let detect_loop_and_skip_to = detect_loop_and_skip_to_mapped ~map:Fn.id ~unmap:Fn.id
 
 let a_star
-  (type key priority)
-  ?(verbose : unit option)
-  (key_comparator : (key, _) Comparator.t)
-  (priority_comparator : (priority, _) Comparator.t)
-  ~step
-  ~sorted_start_positions
-  ~is_goal
+      (type key priority)
+      ?(verbose : unit option)
+      (key_comparator : (key, _) Comparator.t)
+      (priority_comparator : (priority, _) Comparator.t)
+      ~step
+      ~sorted_start_positions
+      ~is_goal
   =
   let sexp_of_key = key_comparator.sexp_of_t in
   let sexp_of_priority = priority_comparator.sexp_of_t in

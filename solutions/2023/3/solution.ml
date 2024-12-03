@@ -28,25 +28,22 @@ let find_symbol_adjacent_numbers grid =
   |> Parallel_iter.from_labelled_iter2
   |> flat_map_l ~f:(fun (j, line) ->
     let last_acc =
-      Array.foldi line ~init:(None, false, []) ~f:(fun i ->
-          function
-          | None, is_adjacent, acc ->
-            (function
-              | Symbol _ -> None, true, acc
-              | Digit d ->
-                let is_adjacent = is_adjacent || is_symbol_above_below grid i j in
-                Some d, is_adjacent, acc
-              | Empty -> None, is_symbol_above_below grid i j, acc)
-          | Some n, is_adjacent, acc ->
-            (function
-              | Symbol _ -> None, true, n :: acc
-              | Empty ->
-                let next_adjacent = is_symbol_above_below grid i j in
-                ( None
-                , next_adjacent
-                , if is_adjacent || next_adjacent then n :: acc else acc )
-              | Digit d ->
-                Some ((10 * n) + d), is_adjacent || is_symbol_above_below grid i j, acc))
+      Array.foldi line ~init:(None, false, []) ~f:(fun i -> function
+        | None, is_adjacent, acc ->
+          (function
+            | Symbol _ -> None, true, acc
+            | Digit d ->
+              let is_adjacent = is_adjacent || is_symbol_above_below grid i j in
+              Some d, is_adjacent, acc
+            | Empty -> None, is_symbol_above_below grid i j, acc)
+        | Some n, is_adjacent, acc ->
+          (function
+            | Symbol _ -> None, true, n :: acc
+            | Empty ->
+              let next_adjacent = is_symbol_above_below grid i j in
+              None, next_adjacent, if is_adjacent || next_adjacent then n :: acc else acc
+            | Digit d ->
+              Some ((10 * n) + d), is_adjacent || is_symbol_above_below grid i j, acc))
     in
     match last_acc with
     | Some n, true, acc -> n :: acc

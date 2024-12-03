@@ -515,9 +515,9 @@ let stream_on ?(poison = false) ?callstack stream seq =
 let _iter_of_cursor cursor seq =
   (Iter.unfoldr [@inlined])
     (fun [@inline] cursor ->
-      match Stream.read cursor with
-      | read_result -> Some read_result
-      | exception Stream_closed -> None)
+       match Stream.read cursor with
+       | read_result -> Some read_result
+       | exception Stream_closed -> None)
     cursor
     seq
 ;;
@@ -526,9 +526,9 @@ let of_cursor ?yield_every cursor seq =
   (unfoldr [@inlined])
     ?yield_every
     (fun [@inline] cursor ->
-      match Stream.read cursor with
-      | read_result -> Some read_result
-      | exception Stream_closed -> None)
+       match Stream.read cursor with
+       | read_result -> Some read_result
+       | exception Stream_closed -> None)
     cursor
     seq
 ;;

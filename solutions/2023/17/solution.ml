@@ -24,9 +24,9 @@ let step grid min_step max_step state heat_loss =
         Fn.apply_n_times
           ~n:steps
           (fun (pos, sum) ->
-            let next_pos = Direction.step pos direction in
-            let sum = sum + grid.^(next_pos) in
-            next_pos, sum)
+             let next_pos = Direction.step pos direction in
+             let sum = sum + grid.^(next_pos) in
+             next_pos, sum)
           (state.position, heat_loss)
       in
       { position; is_horizontal_facing = not state.is_horizontal_facing }, heat_loss

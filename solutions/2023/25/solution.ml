@@ -52,18 +52,18 @@ let part1 adjacency_lists =
           let queue = Psq.remove t queue in
           Psq.fold
             (fun t_adjacent combined_edge queue ->
-              Psq.update t_adjacent (combine_edge combined_edge) queue)
+               Psq.update t_adjacent (combine_edge combined_edge) queue)
             queue
             t_adjacencies)
     in
     let adjacency_lists =
       Psq.fold
         (fun t_adjacent combined_edge adjacency_lists ->
-          Map.update adjacency_lists t_adjacent ~f:(function
-            | None -> assert false
-            | Some queue ->
-              let queue = Psq.remove t queue in
-              Psq.update s (combine_edge combined_edge) queue))
+           Map.update adjacency_lists t_adjacent ~f:(function
+             | None -> assert false
+             | Some queue ->
+               let queue = Psq.remove t queue in
+               Psq.update s (combine_edge combined_edge) queue))
         adjacency_lists
         t_adjacencies
     in

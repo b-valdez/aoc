@@ -3,7 +3,6 @@ include Angstrom
 include Let_syntax
 open Composition_infix
 
-let skip_string chars = string chars *> return () <?> "skip_string"
 let skip_while1 pred = skip pred *> skip_while pred <?> "skip_while1"
 let space = char ' ' *> return () <?> "space"
 let spaces = skip_many1 (char ' ') <?> "spaces"
@@ -47,8 +46,15 @@ let many_unique_till comparator p e =
   <?> "many_unique_till"
 ;;
 
-let pair ?(sep = return ()) p = lift2 Tuple2.create (p <* sep) p <?> "pair"
-let triple ?(sep = return ()) p = lift3 Tuple3.create (p <* sep) (p <* sep) p <?> "triple"
+let pair ?sep p =
+  lift2 Tuple2.create (Option.value_map sep ~default:p ~f:(fun sep -> p <* sep)) p
+  <?> "pair"
+;;
+
+let triple ?sep p =
+  let p_sep = Option.value_map sep ~default:p ~f:(fun sep -> p <* sep) in
+  lift3 Tuple3.create p_sep p_sep p <?> "triple"
+;;
 
 let grid f =
   let line =

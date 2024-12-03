@@ -24,16 +24,16 @@ let to_gen (type a) (iter : a t) : a gen =
         ; exnc = raise_notrace
         ; effc =
             (fun (type b) : (b Effect.t -> _) -> function
-              | Yield (v : a) ->
-                Some
-                  (fun (k : (b, _) Effect.Deep.continuation) ->
-                    gen.free
-                    <- (fun () ->
-                         match Effect.Deep.discontinue k Exit with
-                         | _ | (exception Exit) -> ());
-                    gen.next <- (fun _ -> Effect.Deep.continue k ());
-                    v)
-              | _ -> None)
+               | Yield (v : a) ->
+                 Some
+                   (fun (k : (b, _) Effect.Deep.continuation) ->
+                     gen.free
+                     <- (fun () ->
+                          match Effect.Deep.discontinue k Exit with
+                          | _ | (exception Exit) -> ());
+                     gen.next <- (fun _ -> Effect.Deep.continue k ());
+                     v)
+               | _ -> None)
         }
     in
     { next; free = (fun () -> ()) }
@@ -70,18 +70,18 @@ let to_functional_gen (type a) (iter : a t) : a functional_gen =
       ; exnc = (fun exn -> no_next_gen (Error exn))
       ; effc =
           (fun (type b) : (b Effect.t -> _) -> function
-            | Yield (v : a) ->
-              Some
-                (fun (k : (b, _) Effect.Deep.continuation) ->
-                  { next = (fun () -> Effect.Deep.continue k ())
-                  ; free =
-                      (fun () ->
-                        match Effect.Deep.discontinue k Exit with
-                        | _ | (exception Exit) -> no_next_gen (Error Exit))
-                  ; has_next = true
-                  ; latest = Ok v
-                  })
-            | _ -> None)
+             | Yield (v : a) ->
+               Some
+                 (fun (k : (b, _) Effect.Deep.continuation) ->
+                   { next = (fun () -> Effect.Deep.continue k ())
+                   ; free =
+                       (fun () ->
+                         match Effect.Deep.discontinue k Exit with
+                         | _ | (exception Exit) -> no_next_gen (Error Exit))
+                   ; has_next = true
+                   ; latest = Ok v
+                   })
+             | _ -> None)
       }
   in
   { next

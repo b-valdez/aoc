@@ -40,8 +40,7 @@ let part2 grid =
       grid
       ~init:(Set.empty (module Position), Set.empty (module Position))
       ~f:(fun y init ->
-        Array.foldi ~init ~f:(fun x (round_pos, square_pos) ->
-          function
+        Array.foldi ~init ~f:(fun x (round_pos, square_pos) -> function
           | Empty -> round_pos, square_pos
           | Cube -> round_pos, Set.add square_pos (x, y)
           | Round -> Set.add round_pos (x, y), square_pos))
@@ -54,9 +53,10 @@ let part2 grid =
         round_pos
         ~f:(fun pos ->
           let next_pos = Direction.step pos direction in
-          if (not (in_grid grid next_pos))
-             || Set.mem cube_pos next_pos
-             || Set.mem round_pos next_pos
+          if
+            (not (in_grid grid next_pos))
+            || Set.mem cube_pos next_pos
+            || Set.mem round_pos next_pos
           then pos
           else next_pos)
     in

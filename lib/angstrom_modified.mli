@@ -1,7 +1,6 @@
 include module type of Angstrom with type 'a t = 'a Angstrom.t
 include module type of Let_syntax
 
-val skip_string : string -> unit t
 val skip_while1 : (char -> bool) -> unit t
 val space : unit t
 val spaces : unit t
@@ -29,8 +28,8 @@ val many_unique_till
   -> 'c t
   -> ('a, 'b) Core.Set.t t
 
-val pair : ?sep:unit t -> 'a t -> ('a, 'a) Core.Tuple2.t t
-val triple : ?sep:unit t -> 'a t -> ('a, 'a, 'a) Core.Tuple3.t t
+val pair : ?sep:_ t -> 'a t -> ('a, 'a) Core.Tuple2.t t
+val triple : ?sep:_ t -> 'a t -> ('a, 'a, 'a) Core.Tuple3.t t
 val grid : (char -> 'a) -> 'a array array t
 
 val grid_start

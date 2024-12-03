@@ -7,8 +7,8 @@ let parser =
     (sep_by1
        end_of_line
        (take_while (function
-         | '\n' | '\r' | ',' -> false
-         | _ -> true))
+          | '\n' | '\r' | ',' -> false
+          | _ -> true))
      >>| String.concat)
 ;;
 

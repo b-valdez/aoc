@@ -5,12 +5,11 @@ type token =
   | EOF
   | Do
   | Dont
-[@@deriving sexp]
 
 let parser =
   let open Angstrom in
   let mul =
-    string "mul(" *> (pair ~sep:(char ',' *> return ()) nat >>| fun (a, b) -> Mul (a, b))
+    string "mul(" *> (pair ~sep:(char ',') nat >>| fun (a, b) -> Mul (a, b))
     <* char ')'
   in
   let eof = end_of_input *> return EOF in
@@ -31,12 +30,11 @@ let part1 =
 ;;
 
 let part2 =
-  Iter.fold_filter_map ~init:true ~f:(fun doing ->
-      function
-      | Dont -> false, None
-      | Do -> true, None
-      | EOF -> doing, None
-      | Mul (a, b) when doing -> true, Some (a * b)
-      | Mul _ -> false, None)
+  Iter.fold_filter_map ~init:true ~f:(fun doing -> function
+    | Dont -> false, None
+    | Do -> true, None
+    | EOF -> doing, None
+    | Mul (a, b) when doing -> true, Some (a * b)
+    | Mul _ -> false, None)
   >> Iter.sum
 ;;

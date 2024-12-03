@@ -2,7 +2,7 @@ open! Aoc_std
 
 let parser =
   let open Angstrom in
-  pair ~sep:(string "   " *> return ()) nat <* (end_of_line <|> end_of_input)
+  pair ~sep:(string "   ") nat <* (end_of_line <|> end_of_input)
 ;;
 
 let part1 cursor =

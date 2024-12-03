@@ -34,11 +34,13 @@ let dampen_problem iter ( ~+- ) =
         then Already_dampened
         else raise_notrace Exit
       | Dampening (second_to_last, last) ->
-        if Int.between ~low:1 ~high:3 ~+-(second_to_last + last)
-           && Int.between ~low:1 ~high:3 ~+-diff
+        if
+          Int.between ~low:1 ~high:3 ~+-(second_to_last + last)
+          && Int.between ~low:1 ~high:3 ~+-diff
         then Already_dampened
-        else if Int.between ~low:1 ~high:3 ~+-(last + diff)
-                && Int.between ~low:1 ~high:3 ~+-second_to_last
+        else if
+          Int.between ~low:1 ~high:3 ~+-(last + diff)
+          && Int.between ~low:1 ~high:3 ~+-second_to_last
         then Already_dampened
         else raise_notrace Exit
       | Already_dampened ->

@@ -23,9 +23,9 @@ let parsed_to_map parsed =
         ~init:map
         ~f:
           (Map.change ~f:(function
-            | Some (Conjunction (states, dests)) ->
-              Some (Conjunction ((key, false) :: states, dests))
-            | other -> other)))
+             | Some (Conjunction (states, dests)) ->
+               Some (Conjunction ((key, false) :: states, dests))
+             | other -> other)))
 ;;
 
 let parser =
@@ -102,8 +102,7 @@ let part1 map =
           ~found_in_loop:(base_high, base_low)
           ~loops
           ~before_loop:(subtrahent_high, subtrahent_low)
-          ~after_loop:(minuent_high, minuent_low)
-        ->
+          ~after_loop:(minuent_high, minuent_low) ->
         ( base_high + (loops * (minuent_high - subtrahent_high))
         , base_low + (loops * (minuent_low - subtrahent_low)) ))
   in

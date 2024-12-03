@@ -53,7 +53,8 @@ let%expect_test "take_doubleton" =
     |> Parallel_iter.tap ~f:(printf "before take: %i\n")
     |> Parallel_iter.take 1
     |> Parallel_iter.iter ~f:(printf "after take: %i\n"));
-  [%expect {|
+  [%expect
+    {|
     before take: 1
     after take: 1
     |}]

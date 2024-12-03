@@ -42,8 +42,9 @@ let part1 cursor =
   cursor
   |> of_cursor
   |> map ~f:(fun (id, draws) ->
-    if List.for_all draws ~f:(fun { red; green; blue } ->
-         red <= 12 && green <= 13 && blue <= 14)
+    if
+      List.for_all draws ~f:(fun { red; green; blue } ->
+        red <= 12 && green <= 13 && blue <= 14)
     then id
     else 0)
   |> sum ~padded:true

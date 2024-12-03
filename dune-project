@@ -16,10 +16,12 @@
   ocaml
   owl
   dune
-  shexp
+  (shexp :dev)
   moonpool
   picos
   picos_std_sync
-  embedded_ocaml_templates))
+  (embedded_ocaml_templates :dev)))
 
 (implicit_transitive_deps false)
+
+(generate_opam_files)

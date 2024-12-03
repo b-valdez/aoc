@@ -94,11 +94,11 @@ let parse_file_prefix (type a) file parser =
       ; exnc = raise
       ; effc =
           (fun (type a' b) -> function
-            | (Eff.Yield el : a' Effect.t) ->
-              Some
-                (fun (k : (a', _) Effect.Shallow.continuation) ->
-                  el, (k : (wrap, _) Effect.Shallow.continuation))
-            | _ -> None)
+             | (Eff.Yield el : a' Effect.t) ->
+               Some
+                 (fun (k : (a', _) Effect.Shallow.continuation) ->
+                   el, (k : (wrap, _) Effect.Shallow.continuation))
+             | _ -> None)
       }
   in
   el, fiber
@@ -125,10 +125,10 @@ let parse_file_into_iter (type a) file parser k_iter =
       eff
       { effc =
           (fun (type a') -> function
-            | (Eff.Yield a : a' Effect.t) ->
-              k_iter a;
-              Some (fun (k : (a', unit) continuation) -> continue k (Wrap (parser, eff)))
-            | _ -> None)
+             | (Eff.Yield a : a' Effect.t) ->
+               k_iter a;
+               Some (fun (k : (a', unit) continuation) -> continue k (Wrap (parser, eff)))
+             | _ -> None)
       })
 ;;
 
@@ -148,10 +148,10 @@ let parse_file_into_stream (type a) file parser =
       ; exnc = Moonpool_sync.Stream.poison stream
       ; effc =
           (fun (type a') -> function
-            | (Eff.Yield a : a' Effect.t) ->
-              Moonpool_sync.Stream.push stream a;
-              Some (fun (k : (a', unit) continuation) -> continue k (Wrap (parser, eff)))
-            | _ -> None)
+             | (Eff.Yield a : a' Effect.t) ->
+               Moonpool_sync.Stream.push stream a;
+               Some (fun (k : (a', unit) continuation) -> continue k (Wrap (parser, eff)))
+             | _ -> None)
       });
   stream
 ;;
@@ -165,9 +165,9 @@ let run f =
         let fut, resolve = Moonpool.Fut.make () in
         Moonpool.start_thread_on_some_domain
           (fun () ->
-            let open Caml_threads in
-            Thread.delay 10.;
-            Moonpool.Fut.fulfill resolve (Error (Moonpool.Exn_bt.get Shutdown)))
+             let open Caml_threads in
+             Thread.delay 10.;
+             Moonpool.Fut.fulfill resolve (Error (Moonpool.Exn_bt.get Shutdown)))
           ()
         |> ignore;
         let work = Moonpool.spawn ~on:pool f in
@@ -208,8 +208,8 @@ let[@inline never] mxprintf ~expect mx =
   Mutex.lock mx;
   Printf.kfprintf
     (fun _ ->
-      expect ();
-      Mutex.unlock mx)
+       expect ();
+       Mutex.unlock mx)
     stdout
 ;;
 

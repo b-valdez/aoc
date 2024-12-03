@@ -197,8 +197,9 @@ let part2 (vertices_to_next, start, finish) =
                      (module Int)
                      neighbors
                      ~f:(fun (neighbor, dist) ->
-                       if Position.(neighbor < key)
-                          || List.mem path neighbor ~equal:Position.equal
+                       if
+                         Position.(neighbor < key)
+                         || List.mem path neighbor ~equal:Position.equal
                        then 0
                        else dist - 1))
                |> Iter.sum)

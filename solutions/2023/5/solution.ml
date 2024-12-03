@@ -7,7 +7,7 @@ let parse_prefix =
 
 let parser =
   let open Angstrom in
-  pair ~sep:(skip_string "-to-") any_word
+  pair ~sep:(string "-to-") any_word
   *> string " map:\n"
   *> (triple ~sep:space nat |> lines_lazy)
   <* (count 2 end_of_line *> commit <|> end_of_input)
@@ -127,12 +127,12 @@ let%expect_test "sample" =
       { retc = Fun.id; exnc = raise; effc = (fun _ -> None) }
       { effc =
           (fun (type a) -> function
-            | (Yield map : a Effect.t) ->
-              Some
-                (fun (k : (a, _) Effect.Deep.continuation) ->
-                  f map;
-                  Effect.Deep.continue k (Wrap (parser, fun el -> Yield el)))
-            | _ -> None)
+             | (Yield map : a Effect.t) ->
+               Some
+                 (fun (k : (a, _) Effect.Deep.continuation) ->
+                   f map;
+                   Effect.Deep.continue k (Wrap (parser, fun el -> Yield el)))
+             | _ -> None)
       }
   in
   let[@warning "-8"] [| maps1; maps2 |] = tee_iter maps ~n:2 in
@@ -151,12 +151,12 @@ let%expect_test "input" =
       { retc = Fun.id; exnc = raise; effc = (fun _ -> None) }
       { effc =
           (fun (type a) -> function
-            | (Yield map : a Effect.t) ->
-              Some
-                (fun (k : (a, _) Effect.Deep.continuation) ->
-                  f map;
-                  Effect.Deep.continue k (Wrap (parser, fun el -> Yield el)))
-            | _ -> None)
+             | (Yield map : a Effect.t) ->
+               Some
+                 (fun (k : (a, _) Effect.Deep.continuation) ->
+                   f map;
+                   Effect.Deep.continue k (Wrap (parser, fun el -> Yield el)))
+             | _ -> None)
       }
   in
   let[@warning "-8"] [| maps1; maps2 |] = tee_iter maps ~n:2 in
