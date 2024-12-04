@@ -36,11 +36,29 @@ module Direction = struct
 
   let all_of_vertical = (all_of_vertical :> t list)
 
+  type diagonals =
+    [ `NE
+    | `NW
+    | `SE
+    | `SW
+    ]
+  [@@deriving enumerate, sexp, compare, equal]
+
+  type t_with_diagonals =
+    [ t
+    | diagonals
+    ]
+  [@@deriving enumerate, sexp, compare, equal]
+
   let step (x, y) = function
     | `N -> x, y - 1
     | `E -> x + 1, y
     | `S -> x, y + 1
     | `W -> x - 1, y
+    | `NE -> x + 1, y - 1
+    | `NW -> x - 1, y - 1
+    | `SE -> x + 1, y + 1
+    | `SW -> x - 1, y + 1
   ;;
 
   type turn =
@@ -56,11 +74,26 @@ module Direction = struct
     | `S, Left | `N, Right -> `E
   ;;
 
+  let turn_diagonals direction turn =
+    match direction, turn with
+    | `NE, Left | `SW, Right -> `NW
+    | `SW, Left | `NE, Right -> `SE
+    | `NW, Left | `SE, Right -> `SW
+    | `SE, Left | `NW, Right -> `NE
+  ;;
+
   let opposite = function
     | `N -> `S
     | `S -> `N
     | `E -> `W
     | `W -> `E
+  ;;
+
+  let opposite_diagonals = function
+    | `NE -> `SW
+    | `SW -> `NE
+    | `SE -> `NW
+    | `NW -> `SE
   ;;
 end
 
@@ -75,4 +108,10 @@ let width grid = Array.length grid.(0)
 let in_grid grid (x, y) =
   Int.between ~low:0 ~high:(height grid - 1) y
   && Int.between ~low:0 ~high:(width grid - 1) x
+;;
+
+let iter grid ~f = Array.iter grid ~f:(fun row -> Array.iter row ~f:(fun cell -> f cell))
+
+let iteri grid ~f =
+  Array.iteri grid ~f:(fun y row -> Array.iteri row ~f:(fun x cell -> f (x, y) cell))
 ;;

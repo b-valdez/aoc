@@ -9,8 +9,7 @@ type token =
 let parser =
   let open Angstrom in
   let mul =
-    string "mul(" *> (pair ~sep:(char ',') nat >>| fun (a, b) -> Mul (a, b))
-    <* char ')'
+    string "mul(" *> (pair ~sep:(char ',') nat >>| fun (a, b) -> Mul (a, b)) <* char ')'
   in
   let eof = end_of_input *> return EOF in
   let do_ = string "do()" *> return Do in

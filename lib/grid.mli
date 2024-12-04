@@ -33,7 +33,22 @@ module Direction : sig
     ]
 
   val all_of_vertical : t list
-  val step : int * int -> [< `E | `N | `S | `W ] -> int * int
+
+  type diagonals =
+    [ `NE
+    | `NW
+    | `SE
+    | `SW
+    ]
+  [@@deriving enumerate, sexp, compare, equal]
+
+  type t_with_diagonals =
+    [ t
+    | diagonals
+    ]
+  [@@deriving enumerate, sexp, compare, equal]
+
+  val step : int * int -> [< t_with_diagonals ] -> int * int
 
   type turn =
     | Left
@@ -41,7 +56,9 @@ module Direction : sig
   [@@deriving enumerate, compare, equal, sexp]
 
   val turn : t -> turn -> t
+  val turn_diagonals : diagonals -> turn -> diagonals
   val opposite : t -> t
+  val opposite_diagonals : diagonals -> diagonals
 end
 
 val ( .?() ) : 'a t -> int * int -> 'a option
@@ -49,3 +66,5 @@ val ( .^() ) : 'a t -> int * int -> 'a
 val height : 'a t -> int
 val width : 'a t -> int
 val in_grid : 'a t -> Position.t -> bool
+val iter : 'a t -> f:('a -> unit) -> unit
+val iteri : 'a t -> f:(Position.t -> 'a -> unit) -> unit
