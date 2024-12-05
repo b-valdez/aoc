@@ -132,6 +132,36 @@ let parse_file_into_iter (type a) file parser k_iter =
       })
 ;;
 
+let continue_parsing_into_stream (type a) fiber parser =
+  let stream = Moonpool_sync.Stream.create () in
+  Moonpool.Runner.(run_async (get_current_runner () |> Option.value_exn)) (fun () ->
+    let module Eff = struct
+      type _ Effect.t += Yield : a -> wrap Effect.t
+    end
+    in
+    let eff a = Eff.Yield a in
+    Effect.Deep.match_with
+      (Effect.Shallow.continue_with fiber (Wrap (parser, eff)))
+      { retc = Fun.id
+      ; exnc = raise_notrace
+      ; effc =
+          (function
+            | _ -> None)
+      }
+      { effc =
+          (fun (type a') -> function
+             | (Eff.Yield a : a' Effect.t) ->
+               Moonpool_sync.Stream.push stream a;
+               Some
+                 (fun (k : (a', _) Effect.Deep.continuation) ->
+                   Effect.Deep.continue k (Wrap (parser, eff)))
+             | _ -> None)
+      ; retc = (fun () -> Moonpool_sync.Stream.poison stream Parallel_iter.Stream_closed)
+      ; exnc = Moonpool_sync.Stream.poison stream
+      });
+  stream
+;;
+
 let parse_file_into_stream (type a) file parser =
   let stream = Moonpool_sync.Stream.create () in
   Moonpool.Runner.(run_async (get_current_runner () |> Option.value_exn)) (fun () ->
