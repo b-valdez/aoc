@@ -20,6 +20,8 @@ module Direction : sig
     ]
   [@@deriving enumerate, sexp, compare, equal]
 
+  include Comparator.S with type t := t
+
   type horizontal =
     [ `E
     | `W
@@ -48,7 +50,7 @@ module Direction : sig
     ]
   [@@deriving enumerate, sexp, compare, equal]
 
-  val step : int * int -> [< t_with_diagonals ] -> int * int
+  val step : Position.t -> [< t_with_diagonals ] -> Position.t
 
   type turn =
     | Left

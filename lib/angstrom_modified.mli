@@ -36,7 +36,7 @@ val grid_start
   :  equal:('a -> 'a -> bool)
   -> (char -> 'a)
   -> 'a
-  -> ((int * int) * 'a array array) t
+  -> (Grid.Position.t * 'a array array) t
 
 val tf_grid : bool array array t
 val tf_grid_lazy : bool array array t
@@ -46,5 +46,15 @@ val sparse_tf_grid
       , Core.Tuple.Comparator(Core.Int)(Core.Int).comparator_witness )
       Core.Set.t
       t
+
+val sparse_tf_grid_start
+  :  char
+  -> (Grid.Position.t
+     * ( Core.Tuple.Make(Core.Int)(Core.Int).t
+         , Core.Tuple.Comparator(Core.Int)(Core.Int).comparator_witness )
+         Core.Set.t
+     * int
+     * int)
+       t
 
 val count_till : bool t -> _ t -> int t

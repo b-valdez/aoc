@@ -20,6 +20,8 @@ module Direction = struct
     ]
   [@@deriving enumerate, sexp, compare, equal]
 
+  include (val Comparator.make ~compare ~sexp_of_t)
+
   type horizontal =
     [ `E
     | `W

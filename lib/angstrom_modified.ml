@@ -141,6 +141,23 @@ let sparse_tf_grid =
   <?> "sparse_tf_grid"
 ;;
 
+(* TODO record type for labels *)
+let sparse_tf_grid_start start_char =
+  let initial_state = (-1, -1), Set.empty (module Tuple.Comparator (Int) (Int)), (0, 0) in
+  let rec line state =
+    let* start, acc, (x, y) =
+      scan_state state (fun (start, acc, ((x, y) as pos)) -> function
+        | '#' -> Some (start, Set.add acc pos, (x + 1, y))
+        | '.' -> Some (start, acc, (x + 1, y))
+        | start_char' when Char.(start_char = start_char') -> Some (pos, acc, (x + 1, y))
+        | _ -> None)
+    in
+    end_of_input *> return (start, acc, x + 1, y + 1)
+    <|> end_of_line *> commit *> line (start, acc, (0, y + 1))
+  in
+  line initial_state <?> "sparse_tf_grid_start"
+;;
+
 let count_till p stop =
   let rec count_till_from i =
     stop *> return i
