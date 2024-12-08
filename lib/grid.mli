@@ -63,6 +63,7 @@ module Direction : sig
     | Right
   [@@deriving enumerate, compare, equal, sexp]
 
+  val turn' : t_with_diagonals -> turn -> t_with_diagonals
   val turn : t -> turn -> t
   val turn_diagonals : diagonals -> turn -> diagonals
   val opposite : t -> t

@@ -69,26 +69,48 @@ module Direction = struct
     | `SW -> x - 1, y + 1
   ;;
 
+  type (_, _) restriction =
+    | Cardinal : (t, [> t ]) restriction
+    | Horizontal : (horizontal, [> vertical ]) restriction
+    | Vertical : (vertical, [> horizontal ]) restriction
+    | Diagonal : (diagonals, [> diagonals ]) restriction
+    | None : (t_with_diagonals, t_with_diagonals) restriction
+
   type turn =
     | Left
     | Right
   [@@deriving enumerate, compare, equal, sexp]
 
-  let turn direction turn =
-    match direction, turn with
-    | `E, Left | `W, Right -> `N
-    | `W, Left | `E, Right -> `S
-    | `N, Left | `S, Right -> `W
-    | `S, Left | `N, Right -> `E
+  let[@unroll 1] rec turn
+    : type input result.
+      restrict_to:(input, result) restriction -> input -> turn -> result
+    =
+    fun ~restrict_to direction turn_ : result ->
+    match restrict_to, (direction, turn_) with
+    | None, ((#horizontal as direction), turn_) ->
+      turn ~restrict_to:Horizontal direction turn_
+    | None, ((#vertical as direction), turn_) ->
+      turn ~restrict_to:Vertical direction turn_
+    | None, ((#diagonals as direction), turn_) ->
+      turn ~restrict_to:Diagonal direction turn_
+    | Cardinal, ((#horizontal as direction), turn_) ->
+      turn ~restrict_to:Horizontal direction turn_
+    | Cardinal, ((#vertical as direction), turn_) ->
+      turn ~restrict_to:Vertical direction turn_
+    | Horizontal, (`E, Left | `W, Right) -> `N
+    | Horizontal, (`W, Left | `E, Right) -> `S
+    | Vertical, (`N, Left | `S, Right) -> `W
+    | Vertical, (`S, Left | `N, Right) -> `E
+    | Diagonal, (`NE, Left | `SW, Right) -> `NW
+    | Diagonal, (`SW, Left | `NE, Right) -> `SE
+    | Diagonal, (`NW, Left | `SE, Right) -> `SW
+    | Diagonal, (`SE, Left | `NW, Right) -> `NE
+    | _ -> .
   ;;
 
-  let turn_diagonals direction turn =
-    match direction, turn with
-    | `NE, Left | `SW, Right -> `NW
-    | `SW, Left | `NE, Right -> `SE
-    | `NW, Left | `SE, Right -> `SW
-    | `SE, Left | `NW, Right -> `NE
-  ;;
+  let turn_diagonals direction turn_ = turn ~restrict_to:Diagonal direction turn_
+  let turn' direction turn_ = turn ~restrict_to:None direction turn_
+  let turn direction turn_ = turn ~restrict_to:Cardinal direction turn_
 
   let opposite = function
     | `N -> `S
