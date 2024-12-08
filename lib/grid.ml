@@ -9,6 +9,12 @@ module Position = struct
 
   include T
   include Comparable.Make (T)
+
+  let ( - ) = Tuple2.map2 ~f:( - )
+  let ( + ) = Tuple2.map2 ~f:( + )
+  let ( mod ) t m = Tuple2.map t ~f:(fun t -> t mod m)
+  let ( / ) t i = Tuple2.map t ~f:(fun t -> t / i)
+  let ( * ) t i = Tuple2.map t ~f:(fun t -> t * i)
 end
 
 module Direction = struct

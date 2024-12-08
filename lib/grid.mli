@@ -9,6 +9,12 @@ module Position : sig
   type t = int * int [@@deriving sexp, compare, hash]
 
   include Comparable.S with type t := t
+
+  val ( - ) : t -> t -> t
+  val ( + ) : t -> t -> t
+  val ( mod ) : t -> int -> t
+  val ( / ) : t -> int -> t
+  val ( * ) : t -> int -> t
 end
 
 module Direction : sig

@@ -130,7 +130,7 @@ let tf_grid_lazy =
 
 let sparse_tf_grid =
   scan_state
-    (Set.empty (module Tuple.Comparator (Int) (Int)), (0, 0))
+    (Grid.Position.Set.empty, (0, 0))
     (fun (acc, ((x, y) as pos)) -> function
       | '#' -> Some (Set.add acc pos, (x + 1, y))
       | '.' -> Some (acc, (x + 1, y))
@@ -143,7 +143,7 @@ let sparse_tf_grid =
 
 (* TODO record type for labels *)
 let sparse_tf_grid_start start_char =
-  let initial_state = (-1, -1), Set.empty (module Tuple.Comparator (Int) (Int)), (0, 0) in
+  let initial_state = (-1, -1), Grid.Position.Set.empty, (0, 0) in
   let rec line state =
     let* start, acc, (x, y) =
       scan_state state (fun (start, acc, ((x, y) as pos)) -> function
@@ -154,6 +154,22 @@ let sparse_tf_grid_start start_char =
     in
     end_of_input *> return (start, acc, x + 1, y + 1)
     <|> end_of_line *> commit *> line (start, acc, (0, y + 1))
+  in
+  line initial_state <?> "sparse_tf_grid_start"
+;;
+
+(* TODO record type for labels *)
+let sparse_grid =
+  let initial_state = Char.Map.empty, (0, 0) in
+  let rec line state =
+    let* acc, (x, y) =
+      scan_state state (fun (acc, ((x, y) as pos)) -> function
+        | space when Char.is_whitespace space -> None
+        | '.' -> Some (acc, (x + 1, y))
+        | char -> Some (Map.add_multi acc ~key:char ~data:pos, (x + 1, y)))
+    in
+    end_of_input *> return (acc, x, y + 1)
+    <|> end_of_line *> commit *> line (acc, (0, y + 1))
   in
   line initial_state <?> "sparse_tf_grid_start"
 ;;

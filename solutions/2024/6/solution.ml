@@ -9,7 +9,7 @@ let parser =
          , ( Position.comparator_witness
              , Direction.comparator_witness )
              Tuple2.comparator_witness )
-         Set_intf.Set.t
+         Set.t
       * Position.t
       * Direction.t)
         Stream.t
