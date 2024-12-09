@@ -59,4 +59,51 @@ let part1 seq =
   aux 0 blocks 0 0 0 ((length + 1) / 2) 0
 ;;
 
-let part2 _ = failwith "TODO"
+let part2 seq =
+  let spaces = Doubly_linked.create () in
+  let files, _, id =
+    Iter.foldi seq ~init:([], 0, -1) ~f:(fun (files, pos, id) i block ->
+      if i mod 2 = 0
+      then (block, pos) :: files, pos + block, id + 1
+      else if block = 0
+      then files, pos, id
+      else (
+        let (_ : _ Doubly_linked.Elt.t) = Doubly_linked.insert_last spaces (block, pos) in
+        files, pos + block, id))
+  in
+  let delete_last_if_it_ends_at end_pos =
+    let%bind.Option size, start_pos = Doubly_linked.last spaces in
+    if start_pos + size = end_pos then Doubly_linked.remove_last spaces else None
+  in
+  let rec aux checksum too_big_to_move id = function
+    | [] -> checksum
+    | files when too_big_to_move = 1 ->
+      (* no moves are possible, just compute the remaining checksum *)
+      List.fold files ~init:(checksum, id) ~f:(fun (checksum, id) (size, pos) ->
+        add_to_checksum checksum id pos size, id - 1)
+      |> fst
+    | (size, pos) :: files when size >= too_big_to_move ->
+      let _ : _ option = delete_last_if_it_ends_at pos in
+      let checksum = add_to_checksum checksum id pos size in
+      (aux [@tailcall]) checksum too_big_to_move (id - 1) files
+    | (size, pos) :: files ->
+      (match Doubly_linked.find_elt spaces ~f:(fun (space, _) -> size <= space) with
+       | None ->
+         let _ : _ option = delete_last_if_it_ends_at pos in
+         let checksum = add_to_checksum checksum id pos size in
+         (aux [@tailcall]) checksum size (id - 1) files
+       | Some space_container ->
+         let deleted_pos =
+           delete_last_if_it_ends_at pos |> Option.value_map ~default:0 ~f:snd
+         in
+         let space, space_pos = Doubly_linked.Elt.value space_container in
+         let checksum = add_to_checksum checksum id space_pos size in
+         if deleted_pos <> space_pos
+         then
+           if space = size
+           then Doubly_linked.remove spaces space_container
+           else Doubly_linked.Elt.set space_container (space - size, space_pos + size);
+         (aux [@tailcall]) checksum too_big_to_move (id - 1) files)
+  in
+  aux 0 Int.max_value id files
+;;
