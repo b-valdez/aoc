@@ -13,6 +13,7 @@
   picos
   picos_std.sync
   (re_export moonpool)
+  multicore-magic
   moonpool.fib
   moonpool.forkjoin
   moonpool.sync

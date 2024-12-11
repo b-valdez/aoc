@@ -13,6 +13,8 @@ depends: [
   "owl"
   "dune" {>= "3.17"}
   "shexp" {dev}
+  "backoff"
+  "saturn"
   "moonpool"
   "picos"
   "picos_std_sync"

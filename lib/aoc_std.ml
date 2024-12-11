@@ -16,6 +16,14 @@ include Composition_infix (** @inline *)
 
 module Angstrom = Angstrom_modified
 
+(** {2 Multicore_magic}*)
+
+module Atomic = Multicore_magic.Transparent_atomic
+
+(** {2 Moonpool}*)
+
+module Fut = Fut
+
 (** {2 Added for AOC} *)
 
 module Parallel_iter = Parallel_iter
@@ -188,7 +196,7 @@ let parse_file_into_stream (type a) file parser =
 
 let tap = Picos_std_sync.Stream.tap
 
-let run f =
+let run ?(timeout = 10.) f =
   Moonpool_fib.main (fun _ ->
     Moonpool.Ws_pool.(
       with_ () (fun pool ->
@@ -196,7 +204,7 @@ let run f =
         Moonpool.start_thread_on_some_domain
           (fun () ->
              let open Caml_threads in
-             Thread.delay 10.;
+             Thread.delay timeout;
              Moonpool.Fut.fulfill resolve (Error (Moonpool.Exn_bt.get Shutdown)))
           ()
         |> ignore;

@@ -17,6 +17,8 @@
   owl
   dune
   (shexp :dev)
+  backoff
+  saturn
   moonpool
   picos
   picos_std_sync
