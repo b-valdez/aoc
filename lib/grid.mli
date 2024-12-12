@@ -77,3 +77,4 @@ val width : 'a t -> int
 val in_grid : 'a t -> Position.t -> bool
 val iter : 'a t -> f:('a -> unit) -> unit
 val iteri : 'a t -> f:(Position.t -> 'a -> unit) -> unit
+val map : 'a t -> f:('a -> 'b) -> 'b t

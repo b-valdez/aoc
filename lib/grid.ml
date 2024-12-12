@@ -140,8 +140,10 @@ let in_grid grid (x, y) =
   && Int.between ~low:0 ~high:(width grid - 1) x
 ;;
 
-let iter grid ~f = Array.iter grid ~f:(fun row -> Array.iter row ~f:(fun cell -> f cell))
+let iter grid ~f = Array.iter grid ~f:(fun row -> Array.iter row ~f)
 
 let iteri grid ~f =
   Array.iteri grid ~f:(fun y row -> Array.iteri row ~f:(fun x cell -> f (x, y) cell))
 ;;
+
+let map grid ~f = Array.map grid ~f:(fun row -> Array.map row ~f)
