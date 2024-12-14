@@ -15,6 +15,8 @@
   angstrom
   ocaml
   owl
+  lp
+  lp-glpk
   dune
   (shexp :dev)
   backoff

@@ -109,11 +109,14 @@ let blink times stones =
               |> Parallel_iter.from_iter ~padded:true
               |> Parallel_iter.map ~f:(fun (stone, count) ->
                 aux stone count (age - largest_smaller_steps))
-              |> Parallel_iter.batch_fold ~padded:true ~init:Int.Map.empty ~f:(fun acc batch ->
-                Array.fold
-                  batch
-                  ~init:acc
-                  ~f:(Map.merge_skewed ~combine:(fun ~key:_ -> ( + )))))
+              |> Parallel_iter.batch_fold
+                   ~padded:true
+                   ~init:Int.Map.empty
+                   ~f:(fun acc batch ->
+                     Array.fold
+                       batch
+                       ~init:acc
+                       ~f:(Map.merge_skewed ~combine:(fun ~key:_ -> ( + )))))
           in
           atomic_set
             ~equal:[%equal: _ Fut.t Map.M(Reverse_int).t]
