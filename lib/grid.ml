@@ -9,6 +9,7 @@ module Position = struct
 
   include T
   include Comparable.Make (T)
+  include Hashable.Make (T)
 
   let ( - ) = Tuple2.map2 ~f:( - )
   let ( + ) = Tuple2.map2 ~f:( + )
@@ -132,6 +133,7 @@ let ( .?() ) : 'a t -> _ -> 'a option =
 ;;
 
 let ( .^() ) : 'a t -> _ -> 'a = fun grid (i, j) -> grid.(j).(i)
+let ( .^()<- ) = fun grid (i, j) el -> grid.(j).(i) <- el
 let height grid = Array.length grid
 let width grid = Array.length grid.(0)
 
@@ -147,3 +149,11 @@ let iteri grid ~f =
 ;;
 
 let map grid ~f = Array.map grid ~f:(fun row -> Array.map row ~f)
+
+let rec iteri_from grid ~pos ~direction ~f =
+  let pos = Direction.step pos direction in
+  if in_grid grid pos
+  then (
+    f pos grid.^(pos);
+    iteri_from grid ~pos ~direction ~f)
+;;

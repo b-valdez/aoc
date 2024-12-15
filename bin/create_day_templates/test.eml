@@ -1,21 +1,19 @@
-let%expect_test "sample" =
+let%expect_test "test" =
   let open! Aoc_std in
   let open Solution in
   run
-  @@ fun _ ->
-  let cursor = parse_file_into_stream "sample.blob" parser |> tap in
-  let _part1 () = xprintf "%d" (part1 cursor) ~expect:(fun () -> [%expect.unreachable]) in
-  let _part2 () = xprintf "%d" (part2 cursor) ~expect:(fun () -> [%expect.unreachable]) in
-  fork_join_array [||]
-;;
-
-let%expect_test "input" =
-  let open! Aoc_std in
-  let open Solution in
-  run
-  @@ fun _ ->
-  let cursor = parse_file_into_stream "input.blob" parser |> tap in
-  let _part1 () = xprintf "%d" (part1 cursor) ~expect:(fun () -> [%expect.unreachable]) in
-  let _part2 () = xprintf "%d" (part2 cursor) ~expect:(fun () -> [%expect.unreachable]) in
-  fork_join_array [||]
+  @@ fun [@warning "-26"] _ ->
+  let sample () =
+    let cursor = parse_file_into_stream "sample.blob" parser |> tap in
+    let part1 () = xprintf "%d" (part1 cursor) ~expect:(fun () -> [%expect.unreachable]) in
+    let part2 () = xprintf "%d" (part2 cursor) ~expect:(fun () -> [%expect.unreachable]) in
+    fork_join_array [| part1 |]
+  in
+  let input () =
+    let cursor = parse_file_into_stream "input.blob" parser |> tap in
+    let part1 () = xprintf "%d" (part1 cursor) ~expect:(fun () -> [%expect.unreachable]) in
+    let part2 () = xprintf "%d" (part2 cursor) ~expect:(fun () -> [%expect.unreachable]) in
+    fork_join_array [||]
+  in
+  fork_join_array [| sample |]
 ;;

@@ -11,6 +11,8 @@ depends: [
   "angstrom"
   "ocaml"
   "owl"
+  "lp"
+  "lp-glpk"
   "dune" {>= "3.17"}
   "shexp" {dev}
   "backoff"

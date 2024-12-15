@@ -9,6 +9,7 @@ module Position : sig
   type t = int * int [@@deriving sexp, compare, hash]
 
   include Comparable.S with type t := t
+  include Hashable.S with type t := t
 
   val ( - ) : t -> t -> t
   val ( + ) : t -> t -> t
@@ -72,9 +73,17 @@ end
 
 val ( .?() ) : 'a t -> int * int -> 'a option
 val ( .^() ) : 'a t -> int * int -> 'a
+val ( .^()<- ) : 'a t -> int * int -> 'a -> unit
 val height : 'a t -> int
 val width : 'a t -> int
 val in_grid : 'a t -> Position.t -> bool
 val iter : 'a t -> f:('a -> unit) -> unit
 val iteri : 'a t -> f:(Position.t -> 'a -> unit) -> unit
 val map : 'a t -> f:('a -> 'b) -> 'b t
+
+val iteri_from
+  :  'a t
+  -> pos:Position.t
+  -> direction:Direction.t
+  -> f:(Position.t -> 'a -> unit)
+  -> unit

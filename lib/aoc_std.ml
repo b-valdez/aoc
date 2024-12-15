@@ -83,7 +83,7 @@ let parse_partial file parser eff =
       then f (continue buffer ~off ~len Complete) eff ic buffer off len true
       else f (continue buffer ~off ~len Incomplete) eff ic buffer off len false
   in
-  In_channel.with_file file ~binary:true ~f:(fun ic ->
+  In_channel.with_file file ~binary:false ~f:(fun ic ->
     f (parse parser) eff ic buffer 0 0 false)
 ;;
 
@@ -119,6 +119,30 @@ let parse_file file parser =
     (Wrap (Angstrom.fail "Not eof", fun _ -> failwith "Not eof"))
     { retc = ignore; exnc = raise; effc = (fun _ -> None) };
   el
+;;
+
+let continue_parsing_into_iter (type a) fiber parser k_iter =
+  let module Eff = struct
+    type _ Effect.t += Yield : a -> wrap Effect.t
+  end
+  in
+  let eff a = Eff.Yield a in
+  Effect.Deep.(
+    try_with
+      (Effect.Shallow.continue_with fiber (Wrap (parser, eff)))
+      { retc = Fun.id
+      ; exnc = raise_notrace
+      ; effc =
+          (function
+            | _ -> None)
+      }
+      { effc =
+          (fun (type a') -> function
+             | (Eff.Yield a : a' Effect.t) ->
+               k_iter a;
+               Some (fun (k : (a', unit) continuation) -> continue k (Wrap (parser, eff)))
+             | _ -> None)
+      })
 ;;
 
 let parse_file_into_iter (type a) file parser k_iter =
@@ -195,16 +219,19 @@ let parse_file_into_stream (type a) file parser =
 ;;
 
 let tap = Picos_std_sync.Stream.tap
+let is_shutdown = ref true
 
 let run ?(timeout = 10.) f =
   Moonpool_fib.main (fun _ ->
     Moonpool.Ws_pool.(
       with_ () (fun pool ->
+        is_shutdown := false;
         let fut, resolve = Moonpool.Fut.make () in
         Moonpool.start_thread_on_some_domain
           (fun () ->
              let open Caml_threads in
              Thread.delay timeout;
+             is_shutdown := true;
              Moonpool.Fut.fulfill resolve (Error (Moonpool.Exn_bt.get Shutdown)))
           ()
         |> ignore;

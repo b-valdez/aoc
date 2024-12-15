@@ -1,5 +1,7 @@
 include IterLabels
 
+let from_labelled_iter2 iter2 f = iter2 ~f:(fun i a -> f (i, a))
+
 let of_map_iteri map_iteri (consume : _ -> unit) : unit =
   map_iteri ~f:(fun ~key ~data -> consume (key, data))
 ;;
