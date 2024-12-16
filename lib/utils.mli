@@ -29,11 +29,53 @@ val detect_loop_and_skip_to
   -> skip_to:int
   -> 'a
 
-val a_star
+module type Comparable_sexpable = sig
+  type t [@@deriving compare, sexp_of]
+
+  include Comparator.S with type t := t
+end
+
+module type Comparable_sexpable_summable = sig
+  type t [@@deriving compare, sexp_of]
+
+  include Container.Summable with type t := t
+end
+
+val dijkstra
   :  ?verbose:unit
-  -> ('key, _) Comparator.comparator
-  -> ('priority, _) Comparator.comparator
+  -> (module Comparable_sexpable with type t = 'key)
+  -> (module Comparable_sexpable with type t = 'priority)
   -> step:('key -> 'priority -> ('key * 'priority) Iter.t)
   -> sorted_start_positions:('key * 'priority) list
   -> is_goal:('key -> bool)
   -> 'key * 'priority
+
+val a_star
+  :  ?verbose:unit
+  -> (module Comparable_sexpable with type t = 'key)
+  -> (module Comparable_sexpable_summable with type t = 'priority)
+  -> heuristic:('key -> 'priority)
+  -> step:('key -> 'priority -> ('key * 'priority) Iter.t)
+  -> start_positions:('key * 'priority) list
+  -> is_goal:('key -> bool)
+  -> 'key * 'priority
+
+type 'a branching_paths =
+  | Branching of
+      { shared_end : 'a list
+      ; branches : 'a branching_paths list
+      ; shared_rev_start : 'a list
+      }
+  | Non_branching of 'a list
+[@@deriving sexp, compare]
+
+(** inefficient and wrong *)
+val a_star_all_paths
+  :  ?verbose:unit
+  -> (module Comparable_sexpable with type t = 'key)
+  -> (module Comparable_sexpable_summable with type t = 'priority)
+  -> heuristic:('key -> 'priority)
+  -> step:('key -> 'priority -> ('key * 'priority) Iter.t)
+  -> start_positions:('key * 'priority) list
+  -> is_goal:('key -> bool)
+  -> 'key * 'priority * 'key branching_paths

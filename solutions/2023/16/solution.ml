@@ -48,7 +48,7 @@ let energized_by grid start =
   let filter_adjacent visited adjacent =
     let adjacent_filtered =
       List.filter adjacent ~f:(fun Partial_cell_state.({ cell; _ } as state) ->
-        in_grid grid cell && not (Set.mem visited state))
+        in_grid grid cell && not (Aoc_std.Set.mem visited state))
     in
     adjacent_filtered
   in
@@ -99,10 +99,10 @@ let energized_by grid start =
                in
                filter_adjacent visited adjacent
              in
-             Set.add visited cell_state, List.rev_append to_add_to_next next)
+             Aoc_std.Set.add visited cell_state, List.rev_append to_add_to_next next)
       |> fun (visited, next) -> (breadth_first [@tailcall]) visited next
   in
-  breadth_first (Set.empty (module Partial_cell_state)) [ start ]
+  breadth_first (Aoc_std.Set.empty (module Partial_cell_state)) [ start ]
 ;;
 
 let cells_in set =

@@ -27,7 +27,15 @@ module Direction = struct
     ]
   [@@deriving enumerate, sexp, compare, equal]
 
-  include (val Comparator.make ~compare ~sexp_of_t)
+  include Comparable.Make (struct
+      type t =
+        [ `N
+        | `E
+        | `S
+        | `W
+        ]
+      [@@deriving sexp, compare]
+    end)
 
   type horizontal =
     [ `E
@@ -127,6 +135,9 @@ module Direction = struct
     | `NW -> `SE
   ;;
 end
+
+let horizontal_project (x, _) = if x < 0 then Some `W else if x > 0 then Some `E else None
+let vertical_project (_, y) = if y < 0 then Some `N else if y > 0 then Some `S else None
 
 let ( .?() ) : 'a t -> _ -> 'a option =
   fun grid (i, j) -> Option.try_with @@ fun () -> grid.(j).(i)

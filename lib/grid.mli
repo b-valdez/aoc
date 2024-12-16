@@ -27,7 +27,7 @@ module Direction : sig
     ]
   [@@deriving enumerate, sexp, compare, equal]
 
-  include Comparator.S with type t := t
+  include Comparable.S with type t := t
 
   type horizontal =
     [ `E
@@ -71,6 +71,8 @@ module Direction : sig
   val opposite_diagonals : diagonals -> diagonals
 end
 
+val horizontal_project : Position.t -> Direction.horizontal option
+val vertical_project : Position.t -> Direction.vertical option
 val ( .?() ) : 'a t -> int * int -> 'a option
 val ( .^() ) : 'a t -> int * int -> 'a
 val ( .^()<- ) : 'a t -> int * int -> 'a -> unit

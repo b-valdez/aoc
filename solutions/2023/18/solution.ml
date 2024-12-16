@@ -1,4 +1,5 @@
 open! Aoc_std
+open Grid
 
 let direction_of_char = function
   | 'U' -> `N
@@ -30,12 +31,11 @@ let parser =
 ;;
 
 let trench =
-  let map = Grid.Position.Map.empty in
+  let map = Position.Map.empty in
   List.fold
     ~init:(map, (0, 0), 0)
     ~f:(fun (corners, pos, id) (direction, steps) ->
-      let open Grid.Direction in
-      let pos = Fn.apply_n_times ~n:steps (fun pos -> step pos direction) pos in
+      let pos = Fn.apply_n_times ~n:steps (fun pos -> Direction.step pos direction) pos in
       Map.add_exn corners ~key:pos ~data:id, pos, id + 1)
   >> Tuple3.get1
 ;;

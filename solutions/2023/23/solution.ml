@@ -170,9 +170,15 @@ let part2 (vertices_to_next, start, finish) =
         List.maybe_cons to_maybe_cons neighbors))
   in
   let _path, opportunity_cost =
-    a_star
-      (List.comparator Position.comparator)
-      Int.comparator
+    dijkstra
+      (module struct
+        (* This makes it look like choosing to replace comparators with modules is a mistake. Why is there no ppx_comparator? *)
+        type t = Position.t list [@@deriving compare, sexp]
+        type comparator_witness = Position.comparator_witness List.comparator_witness
+
+        let comparator = List.comparator Position.comparator
+      end)
+      (module Int)
       ~step:(fun path cost ->
         let neighbors =
           List.rev_filter

@@ -47,9 +47,9 @@ let is_goal grid state =
 ;;
 
 let part1 grid =
-  a_star
-    State.comparator
-    Int.comparator
+  dijkstra
+    (module State)
+    (module Int)
     ~step:(step grid 1 3)
     ~is_goal:(is_goal grid)
     ~sorted_start_positions:
@@ -60,9 +60,9 @@ let part1 grid =
 ;;
 
 let part2 grid =
-  a_star
-    State.comparator
-    Int.comparator
+  dijkstra
+    (module State)
+    (module Int)
     ~step:(step grid 4 10)
     ~is_goal:(is_goal grid)
     ~sorted_start_positions:

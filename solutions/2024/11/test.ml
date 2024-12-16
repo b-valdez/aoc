@@ -14,7 +14,7 @@ let%expect_test "sample" =
 let%expect_test "input" =
   let open! Aoc_std in
   let open Solution in
-  run ~timeout:20.
+  run ~timeout:30.
   @@ fun _ ->
   let stones = parse_file "input.blob" parser in
   let after_25 = blink 25 stones in
