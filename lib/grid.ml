@@ -25,7 +25,7 @@ module Direction = struct
     | `S
     | `W
     ]
-  [@@deriving enumerate, sexp, compare, equal]
+  [@@deriving enumerate, sexp, compare, equal, hash]
 
   include Comparable.Make (struct
       type t =

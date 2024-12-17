@@ -60,22 +60,12 @@ val a_star
   -> is_goal:('key -> bool)
   -> 'key * 'priority
 
-type 'a branching_paths =
-  | Branching of
-      { shared_end : 'a list
-      ; branches : 'a branching_paths list
-      ; shared_rev_start : 'a list
-      }
-  | Non_branching of 'a list
-[@@deriving sexp, compare]
-
-(** inefficient and wrong *)
 val a_star_all_paths
   :  ?verbose:unit
-  -> (module Comparable_sexpable with type t = 'key)
+  -> (module Hashtbl.Key_plain with type t = 'key)
   -> (module Comparable_sexpable_summable with type t = 'priority)
   -> heuristic:('key -> 'priority)
   -> step:('key -> 'priority -> ('key * 'priority) Iter.t)
   -> start_positions:('key * 'priority) list
   -> is_goal:('key -> bool)
-  -> 'key * 'priority * 'key branching_paths
+  -> 'key * 'priority * ('key, 'priority * 'key list) Hashtbl.t

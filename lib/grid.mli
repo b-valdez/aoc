@@ -25,7 +25,7 @@ module Direction : sig
     | `S
     | `W
     ]
-  [@@deriving enumerate, sexp, compare, equal]
+  [@@deriving enumerate, sexp, compare, equal, hash]
 
   include Comparable.S with type t := t
 

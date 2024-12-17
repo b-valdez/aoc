@@ -23,12 +23,12 @@ let parser =
 
 (* TODO candidate for promotion to Aoc_std.Grid *)
 module Position_with_direction = struct
-  type t = Position.t * Direction.t
+  type t = Position.t * Direction.t [@@deriving hash]
 
   include Tuple.Comparable (Position) (Direction)
 end
 
-let part1 (start, grid) =
+let common (start, grid) =
   let goal, _ =
     Grid.iteri grid
     |> Iter.from_labelled_iter2
@@ -63,14 +63,24 @@ let part1 (start, grid) =
              direction' -> dist + if Option.is_some horizontal then 1000 else 0
     | #Direction.t, _, _ -> dist + 2000
   in
-  a_star
+  a_star_all_paths
     (module Position_with_direction)
     (module Int)
     ~step
     ~start_positions:[ (start, `E), 0 ]
     ~is_goal
     ~heuristic
-  |> snd
 ;;
 
-let part2 _ = failwith "TODO"
+let part1 = snd3
+
+let part2 (goal, _, predecessors) =
+  let rec aux on_some_path = function
+    | [] -> on_some_path
+    | [] :: more -> (aux [@tailcall]) on_some_path more
+    | (((el, _) as state) :: more) :: even_more ->
+      let _, el_predecessors = Hashtbl.find_exn predecessors state in
+      (aux [@tailcall]) (Set.add on_some_path el) (more :: el_predecessors :: even_more)
+  in
+  aux Position.Set.empty [ [ goal ] ] |> Set.length
+;;

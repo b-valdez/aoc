@@ -134,72 +134,10 @@ let a_star
           state_with_cost, Cost.(cost + heuristic state))))
 ;;
 
-type 'a branching_paths =
-  | Branching of
-      { shared_end : 'a list
-      ; branches : 'a branching_paths list
-      ; shared_rev_start : 'a list
-      }
-  | Non_branching of 'a list
-[@@deriving sexp, compare]
-
-let append_to_branching_paths paths el =
-  match paths with
-  | Branching paths -> Branching { paths with shared_end = el :: paths.shared_end }
-  | Non_branching paths -> Non_branching (el :: paths)
-;;
-
-let shared_prefix ~compare a b =
-  let rec aux acc = function
-    | el :: a, el' :: b when compare el el' = 0 -> (aux [@tailcall]) (el :: acc) (a, b)
-    | a, b -> List.rev acc, a, b
-  in
-  aux [] (a, b)
-;;
-
-let end_of = function
-  | Branching { shared_end; _ } -> shared_end
-  | Non_branching all -> all
-;;
-
-let rev_start_of = function
-  | Branching { shared_rev_start; _ } -> shared_rev_start
-  | Non_branching all -> List.rev all
-;;
-
-let branches_of = function
-  | Branching { branches; _ } -> branches
-  | Non_branching _ -> []
-;;
-
-let branching_paths_of shared_end branches shared_rev_start =
-  match shared_end, branches, shared_rev_start with
-  | shared_end, [], shared_rev_start ->
-    Non_branching (List.rev_append shared_end shared_rev_start)
-  | shared_end, branches, shared_rev_start ->
-    Branching { shared_end; branches; shared_rev_start }
-;;
-
-(* TODO could be nicer by having branches of more than 2 elements. I don't have the brainpower right now. *)
-let combine_paths (type t) ~compare a b =
-  let shared_end, end_a, end_b = shared_prefix ~compare (end_of a) (end_of b) in
-  let shared_rev_start, start_a, start_b =
-    shared_prefix ~compare (rev_start_of a) (rev_start_of b)
-  in
-  Branching
-    { shared_end
-    ; shared_rev_start
-    ; branches =
-        [ branching_paths_of end_a (branches_of a) start_a
-        ; branching_paths_of end_b (branches_of b) start_b
-        ]
-    }
-;;
-
 let a_star_all_paths
       (type key cost)
       ?(verbose : unit option)
-      (module Key : Comparable_sexpable with type t = key)
+      (module Key : Hashtbl.Key_plain with type t = key)
       (module Cost : Comparable_sexpable_summable with type t = cost)
       ~heuristic
       ~step
@@ -213,53 +151,39 @@ let a_star_all_paths
       end)
       (Cost)
   in
-  let rec aux best_paths visited queue =
+  let predecessors = Hashtbl.create (module Key) in
+  List.iter start_positions ~f:(fun (state, cost) ->
+    Hashtbl.add_exn predecessors ~key:state ~data:(cost, []));
+  let rec aux visited queue =
     if Option.is_some verbose
     then print_s @@ [%sexp_of: ((Key.t * Cost.t) * Cost.t) list] @@ Queue.to_list queue;
     match Queue.pop queue with
     | None -> assert false
-    | Some (((state, cost), _), _) when is_goal state ->
-      state, cost, Map.find_exn best_paths state
+    | Some (((state, cost), _), _) when is_goal state -> state, cost, predecessors
     | Some (((state, cost), _), rest) ->
-      let best_paths_to_state = Map.find_exn best_paths state in
-      let queue, best_paths =
+      let queue =
         step state cost
-        |> Iter.fold
-             ~init:(rest, best_paths)
-             ~f:(fun (rest, best_paths) (next_state, cost) ->
-               let priority = Cost.(cost + heuristic next_state) in
-               match Queue.find (next_state, cost) rest with
-               | Some p when Cost.compare priority p > 0 -> rest, best_paths
-               | Some p when Cost.compare priority p < 0 ->
-                 ( Queue.add (next_state, cost) priority rest
-                 , Map.set
-                     best_paths
-                     ~key:next_state
-                     ~data:(append_to_branching_paths best_paths_to_state next_state) )
-               | None when not @@ Set.mem visited next_state ->
-                 ( Queue.add (next_state, cost) priority rest
-                 , Map.set
-                     best_paths
-                     ~key:next_state
-                     ~data:(append_to_branching_paths best_paths_to_state next_state) )
-               | _ ->
-                 let known_paths = Map.find_exn best_paths next_state in
-                 ( rest
-                 , Map.set
-                     best_paths
-                     ~key:next_state
-                     ~data:
-                       (combine_paths ~compare:Key.compare known_paths
-                        @@ append_to_branching_paths best_paths_to_state next_state) ))
+        |> Iter.filter ~f:(fun (next_state, cost) ->
+          Hashtbl.update predecessors next_state ~f:(function
+            | None -> cost, [ state ]
+            | Some (greater_cost, _) when Cost.compare greater_cost cost > 0 ->
+              cost, [ state ]
+            | Some (equal_cost, known_predecessors) when Cost.compare equal_cost cost = 0
+              -> cost, state :: known_predecessors
+            | Some existing_better -> existing_better);
+          not @@ Set.mem visited state)
+        |> Iter.fold ~init:rest ~f:(fun rest (next_state, cost) ->
+          Queue.push (next_state, cost) Cost.(cost + heuristic next_state) rest)
       in
-      (aux [@tailcall]) best_paths (Set.add visited state) queue
+      (aux [@tailcall]) (Set.add visited state) queue
   in
   aux
-    (Map.of_alist_exn
-       (module Key)
-       (List.map start_positions ~f:(fun (position, _) ->
-          position, Non_branching [ position ])))
-    (Set.empty (module Key))
+    (Set.empty
+       (module struct
+         type t = Key.t
+
+         include Comparator.Make (Key)
+       end))
     (Queue.of_list
        (List.map start_positions ~f:(fun ((state, cost) as state_with_cost) ->
           state_with_cost, Cost.(cost + heuristic state))))
