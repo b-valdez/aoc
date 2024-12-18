@@ -158,8 +158,11 @@ let parse_file_into_iter (type a) file parser k_iter =
       { effc =
           (fun (type a') -> function
              | (Eff.Yield a : a' Effect.t) ->
-               k_iter a;
-               Some (fun (k : (a', unit) continuation) -> continue k (Wrap (parser, eff)))
+               Some
+                 (fun (k : (a', unit) continuation) ->
+                   match k_iter a with
+                   | () -> continue k (Wrap (parser, eff))
+                   | exception exn -> discontinue k exn)
              | _ -> None)
       })
 ;;

@@ -90,9 +90,9 @@ let grid_start ~(equal : 'a -> 'a -> _) f start =
      on_start
      := fun cell ->
           if equal start cell
-          then (
+          then
             pos
-            >>| fun x ->
+            >>| (fun x ->
             Set_once.set_exn
               start_pos
               [%here]
@@ -100,13 +100,17 @@ let grid_start ~(equal : 'a -> 'a -> _) f start =
               , (x - grid_start - 1) / (line_length + 1) );
             on_start := return;
             cell)
+            <* commit
           else return cell);
   let line =
-    count line_length (any_char >>= (f >> !on_start))
-    >>| Array.of_list
+    (peek_char_fail
+     >>= function
+     | '\r' | '\n' -> fail "Failure for backtracking"
+     | _ -> return ())
+    *> (count line_length (any_char >>= (f >> !on_start)) >>| Array.of_list <* commit)
     <?> "line with known length"
   in
-  let%map other_lines = lines line in
+  let%map other_lines = lines_lazy line in
   Set_once.get_exn start_pos [%here], first_line :: other_lines |> Array.of_list
 ;;
 

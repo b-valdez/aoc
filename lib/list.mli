@@ -23,3 +23,10 @@ val count_drop_while : f:('a -> bool) -> 'a t -> int * 'a t
 val update_concat : 'a t -> 'a -> 'a t -> equal:('a -> 'a -> bool) -> 'a t
 
 val maybe_cons : 'a option -> 'a t -> 'a t
+
+val printf_list
+  :  ?sep:(out_channel -> unit)
+  -> (out_channel -> 'a -> unit)
+  -> out_channel
+  -> 'a list
+  -> unit

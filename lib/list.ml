@@ -35,3 +35,10 @@ module Assoc = struct
     | kvp :: rest -> kvp :: (update [@tailcall]) rest key ~f ~equal
   ;;
 end
+
+let rec printf_list ?(sep = fun out -> fprintf out ",") format out = function
+  | [] -> ()
+  | [ el ] -> format out el
+  | el :: more ->
+    Printf.kfprintf (fun out -> printf_list ~sep format out more) out "%a%t" format el sep
+;;
