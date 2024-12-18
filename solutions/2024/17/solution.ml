@@ -58,59 +58,7 @@ let part1 ?(verbose : unit option) (state, program) =
   aux state 0 []
 ;;
 
-let rec improve_blang = function
-  | Blang.And (_, _) as t ->
-    let ts = Blang.gather_conjuncts t in
-    (match List.find ts ~f:(fun blang -> Blang.length blang = 1) with
-     | Some (Base value as singleton) ->
-       Blang.and_
-         [ singleton
-         ; improve_blang
-           @@ Blang.specialize t (fun value' ->
-             if value = value' then `Known true else `Unknown)
-         ]
-     | Some (Not (Base value) as singleton) ->
-       Blang.and_
-         [ singleton
-         ; improve_blang
-           @@ Blang.specialize t (fun value' ->
-             if value = value' then `Known false else `Unknown)
-         ]
-     | _ -> Blang.and_ (List.map ts ~f:improve_blang))
-  | Blang.Or (_, _) as t ->
-    let ts = Blang.gather_disjuncts t in
-    (match List.find ts ~f:(fun blang -> Blang.length blang = 1) with
-     | Some (Base value as singleton) ->
-       Blang.or_
-         [ singleton
-         ; improve_blang
-           @@ Blang.specialize t (fun value' ->
-             if value = value' then `Known false else `Unknown)
-         ]
-     | Some (Not (Base value) as singleton) ->
-       Blang.or_
-         [ singleton
-         ; improve_blang
-           @@ Blang.specialize t (fun value' ->
-             if value = value' then `Known true else `Unknown)
-         ]
-     | _ -> Blang.or_ (List.map ts ~f:improve_blang))
-  | If (condition, then_, else_) ->
-    Blang.if_
-      (improve_blang condition)
-      (improve_blang (Blang.and_ [ condition; then_ ]))
-      (improve_blang (Blang.and_ [ Blang.not_ condition; else_ ]))
-  | Not blang -> Blang.not_ @@ improve_blang blang
-  | untouched -> untouched
-;;
-
-(* This solution requires manual effort *)
-let part2
-      ?(specialize = Fn.const `Unknown)
-      ?(depth = 1)
-      ?(digits_of_last_a = 5)
-      (_, program)
-  =
+let part2 (_, program) =
   let module T = struct
     type register =
       | A
@@ -128,7 +76,6 @@ let part2
   end
   in
   let module Memo = Fix.Memoize.ForHashedType (T) in
-  let specialize blang = Blang.specialize blang specialize |> improve_blang in
   let combo_operand memoized step loop operand bit =
     match operand with
     | 4 -> memoized T.{ step = step - 2; loop; register = A; bit }
@@ -137,7 +84,7 @@ let part2
     | literal -> Blang.constant (literal land (1 lsl bit) <> 0)
   in
   let blang_xor a b =
-    Blang.and_ [ Blang.or_ [ a; b ]; Blang.not_ @@ Blang.and_ [ a; b ] ] |> specialize
+    Blang.and_ [ Blang.or_ [ a; b ]; Blang.not_ @@ Blang.and_ [ a; b ] ]
   in
   let memoized =
     Memo.fix
@@ -153,7 +100,7 @@ let part2
         (Sexp.to_string_hum @@ [%sexp_of: T.t * int array] (v, program))
         ()
     | { loop = 0; step = 0; register = B | C; bit = _ } -> Blang.false_
-    | { loop = 0; step = 0; register = A; bit } -> Blang.base bit |> specialize
+    | { loop = 0; step = 0; register = A; bit } -> Blang.base bit
     | { loop; step = 0; register; bit } ->
       memoized { loop = loop - 1; step = Array.length program; register; bit }
     | { loop; step; register; bit } ->
@@ -204,7 +151,6 @@ let part2
                              (memoized
                                 { loop; step = step - 2; register = A; bit = bit + 1 })
                              (memoized { loop; step = step - 2; register = A; bit })))))))
-         |> specialize
        | _ -> memoized { loop; step = step - 2; register; bit })
   in
   let out_index, _ = Array.findi_exn program ~f:(fun i op -> i mod 2 = 0 && op = 5) in
@@ -215,18 +161,93 @@ let part2
     | 6 -> C
     | _ -> assert false
   in
-  List.range 0 depth
-  |> List.map ~f:(fun depth ->
-    if depth < Array.length program
-    then
-      ( program.(depth)
-      , List.map [ 0; 1; 2 ] ~f:(fun i ->
-          i, memoized { loop = depth; step = out_index + 2; register; bit = i }) )
-    else
-      ( 0
-      , List.map (List.range 0 digits_of_last_a) ~f:(fun i ->
-          ( i
-          , memoized
-              { loop = depth - 1; step = Array.length program; register = A; bit = i } ))
-      ))
+  let outputs_satisfied =
+    List.range 0 (Array.length program)
+    |> List.map ~f:(fun depth ->
+      Blang.and_
+      @@ List.map [ 0; 1; 2 ] ~f:(fun i ->
+        if program.(depth) land (1 lsl i) <> 0
+        then memoized { loop = depth; step = out_index + 2; register; bit = i }
+        else
+          Blang.not_ @@ memoized { loop = depth; step = out_index + 2; register; bit = i }))
+    |> Blang.and_
+  in
+  let biggest_index = Blang.max_elt outputs_satisfied ~compare |> Option.value_exn in
+  let stop_satisfied =
+    List.range ~stop:`inclusive 0 biggest_index
+    |> List.map ~f:(fun bit ->
+      Blang.not_
+      @@ memoized
+           { loop = Array.length program - 1
+           ; step = Array.length program
+           ; register = A
+           ; bit
+           })
+  in
+  let is_satisfied = Blang.and_ (outputs_satisfied :: stop_satisfied) in
+  (* possibly promote to Aoc_std, because core only has Blang.eval_set which has prohibitive space requirements for this kind of problem *)
+  let rec find_smallest blang backtrack current_known =
+    match Blang.max_elt blang ~compare with
+    | None -> current_known
+    | Some max ->
+      let state =
+        List.range ~stride:(-1) ~stop:`inclusive max 0
+        |> List.fold_until
+             ~init:(blang, current_known)
+             ~f:(fun (blang, current_known) bit ->
+               if Map.mem current_known bit
+               then Continue (blang, current_known)
+               else (
+                 let specialized_true =
+                   Blang.specialize blang (fun i ->
+                     if i = bit then `Known true else `Unknown)
+                 in
+                 let specialized_false =
+                   Blang.specialize blang (fun i ->
+                     if i = bit then `Known false else `Unknown)
+                 in
+                 match
+                   ( Blang.constant_value specialized_true
+                   , Blang.constant_value specialized_false )
+                 with
+                 | Some true, _ ->
+                   Stop (`Finished (Map.add_exn current_known ~key:bit ~data:true))
+                 | _, Some true ->
+                   Stop (`Finished (Map.add_exn current_known ~key:bit ~data:false))
+                 | Some false, Some false -> Stop `Backtrack
+                 | Some false, _ ->
+                   Continue
+                     (specialized_false, Map.add_exn current_known ~key:bit ~data:false)
+                 | _, Some false ->
+                   Continue
+                     (specialized_true, Map.add_exn current_known ~key:bit ~data:true)
+                 | None, None -> Continue (blang, current_known)))
+             ~finish:(fun (blang, current_known) -> `Unfinished (blang, current_known))
+      in
+      (match state with
+       | `Finished known -> known
+       | `Backtrack ->
+         (match backtrack with
+          | [] -> failwith "No solution found"
+          | (blang, current_known) :: backtrack ->
+            (find_smallest [@tailcall]) blang backtrack current_known)
+       | `Unfinished (blang', current_known) ->
+         if [%equal: int Blang.t] blang blang'
+         then (
+           let specialized_true =
+             Blang.specialize blang (fun i -> if i = max then `Known true else `Unknown)
+           in
+           let specialized_false =
+             Blang.specialize blang (fun i -> if i = max then `Known false else `Unknown)
+           in
+           (find_smallest [@tailcall])
+             specialized_false
+             ((specialized_true, Map.add_exn current_known ~key:max ~data:true)
+              :: backtrack)
+             (Map.add_exn current_known ~key:max ~data:false))
+         else (find_smallest [@tailcall]) blang' backtrack current_known)
+  in
+  find_smallest is_satisfied [] Int.Map.empty
+  |> Map.fold ~init:0 ~f:(fun ~key:bit ~data:is_set a ->
+    if is_set then a + (1 lsl bit) else a)
 ;;
