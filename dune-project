@@ -24,6 +24,7 @@
   moonpool
   picos
   picos_std_sync
+  fix
   (embedded_ocaml_templates :dev)))
 
 (implicit_transitive_deps false)

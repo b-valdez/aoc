@@ -235,11 +235,17 @@ let run ?(timeout = 10.) f =
              let open Caml_threads in
              Thread.delay timeout;
              is_shutdown := true;
-             Moonpool.Fut.fulfill resolve (Error (Moonpool.Exn_bt.get Shutdown)))
+             Moonpool.Fut.fulfill_idempotent
+               resolve
+               (Error (Moonpool.Exn_bt.get Shutdown)))
           ()
         |> ignore;
-        let work = Moonpool.spawn ~on:pool f in
-        Moonpool_sync.Event.(select [ of_fut fut; of_fut work ]))))
+        let _ : _ Moonpool.Fut.t =
+          Moonpool.spawn ~on:pool (fun () ->
+            f ();
+            Moonpool.Fut.fulfill_idempotent resolve (Ok ()))
+        in
+        Moonpool.await fut)))
 ;;
 
 let fork_join_array array =
