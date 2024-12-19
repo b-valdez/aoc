@@ -240,11 +240,9 @@ let run ?(timeout = 10.) f =
                (Error (Moonpool.Exn_bt.get Shutdown)))
           ()
         |> ignore;
-        let _ : _ Moonpool.Fut.t =
-          Moonpool.spawn ~on:pool (fun () ->
-            f ();
-            Moonpool.Fut.fulfill_idempotent resolve (Ok ()))
-        in
+        Moonpool.Fut.on_result
+          (Moonpool.spawn ~on:pool f)
+          (Moonpool.Fut.fulfill_idempotent resolve);
         Moonpool.await fut)))
 ;;
 
