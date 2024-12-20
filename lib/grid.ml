@@ -11,6 +11,7 @@ module Position = struct
   include Comparable.Make (T)
   include Hashable.Make (T)
 
+  let dist (x, y) (x', y') = abs (x - x') + abs (y - y')
   let ( - ) = Tuple2.map2 ~f:( - )
   let ( + ) = Tuple2.map2 ~f:( + )
   let ( mod ) t m = Tuple2.map t ~f:(fun t -> t mod m)

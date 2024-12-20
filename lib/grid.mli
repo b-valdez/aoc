@@ -16,6 +16,7 @@ module Position : sig
   val ( mod ) : t -> int -> t
   val ( / ) : t -> int -> t
   val ( * ) : t -> int -> t
+  val dist : t -> t -> int
 end
 
 module Direction : sig
