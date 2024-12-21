@@ -78,6 +78,7 @@ module Dpad_tuple = struct
 end
 
 let navigate_and_press =
+  let await = Moonpool.await in
   Tuple3.curry
   @@ Par_memo.fix
        (module Dpad_tuple)
@@ -86,47 +87,80 @@ let navigate_and_press =
           then 1
           else (
             let navigate_and_press_sequence sequence =
-              snd
-              @@ List.fold sequence ~init:(Activate, 0) ~f:(fun (last, cost) current ->
-                current, cost + navigate_and_press (layer - 1, last, current))
+              let _, costs =
+                List.fold_map sequence ~init:Activate ~f:(fun last current ->
+                  ( current
+                  , Moonpool.Fut.spawn_on_current_runner (fun () ->
+                      navigate_and_press (layer - 1, last, current)) ))
+              in
+              Moonpool.Fut.map
+                (Moonpool.Fut.join_list costs)
+                ~f:(List.sum (module Int) ~f:Fn.id)
             in
             match from, to_ with
             | Up, Up | Down, Down | Left, Left | Right, Right | Activate, Activate ->
-              navigate_and_press_sequence [ Activate ]
-            | Down, Up | Right, Activate -> navigate_and_press_sequence [ Up; Activate ]
-            | Up, Down | Activate, Right -> navigate_and_press_sequence [ Down; Activate ]
+              await @@ navigate_and_press_sequence [ Activate ]
+            | Down, Up | Right, Activate ->
+              await @@ navigate_and_press_sequence [ Up; Activate ]
+            | Up, Down | Activate, Right ->
+              await @@ navigate_and_press_sequence [ Down; Activate ]
             | Activate, Up | Right, Down | Down, Left ->
-              navigate_and_press_sequence [ Left; Activate ]
-            | Right, Left -> navigate_and_press_sequence [ Left; Left; Activate ]
+              await @@ navigate_and_press_sequence [ Left; Activate ]
+            | Right, Left -> await @@ navigate_and_press_sequence [ Left; Left; Activate ]
             | Up, Activate | Down, Right | Left, Down ->
-              navigate_and_press_sequence [ Right; Activate ]
-            | Left, Right -> navigate_and_press_sequence [ Right; Right; Activate ]
+              await @@ navigate_and_press_sequence [ Right; Activate ]
+            | Left, Right ->
+              await @@ navigate_and_press_sequence [ Right; Right; Activate ]
             | Up, Right ->
-              min
-                (navigate_and_press_sequence [ Right; Down; Activate ])
-                (navigate_and_press_sequence [ Down; Right; Activate ])
+              let a, b =
+                await
+                @@ Moonpool.Fut.both
+                     (navigate_and_press_sequence [ Right; Down; Activate ])
+                     (navigate_and_press_sequence [ Down; Right; Activate ])
+              in
+              min a b
             | Right, Up ->
-              min
-                (navigate_and_press_sequence [ Left; Up; Activate ])
-                (navigate_and_press_sequence [ Up; Left; Activate ])
+              let a, b =
+                await
+                @@ Moonpool.Fut.both
+                     (navigate_and_press_sequence [ Left; Up; Activate ])
+                     (navigate_and_press_sequence [ Up; Left; Activate ])
+              in
+              min a b
             | Activate, Down ->
-              min
-                (navigate_and_press_sequence [ Left; Down; Activate ])
-                (navigate_and_press_sequence [ Down; Left; Activate ])
+              let a, b =
+                await
+                @@ Moonpool.Fut.both
+                     (navigate_and_press_sequence [ Left; Down; Activate ])
+                     (navigate_and_press_sequence [ Down; Left; Activate ])
+              in
+              min a b
             | Down, Activate ->
-              min
-                (navigate_and_press_sequence [ Right; Up; Activate ])
-                (navigate_and_press_sequence [ Up; Right; Activate ])
-            | Up, Left -> navigate_and_press_sequence [ Down; Left; Activate ]
-            | Left, Up -> navigate_and_press_sequence [ Right; Up; Activate ]
+              let a, b =
+                await
+                @@ Moonpool.Fut.both
+                     (navigate_and_press_sequence [ Right; Up; Activate ])
+                     (navigate_and_press_sequence [ Up; Right; Activate ])
+              in
+              min a b
+            | Up, Left -> await @@ navigate_and_press_sequence [ Down; Left; Activate ]
+            | Left, Up -> await @@ navigate_and_press_sequence [ Right; Up; Activate ]
             | Left, Activate ->
-              min
-                (navigate_and_press_sequence [ Right; Right; Up; Activate ])
-                (navigate_and_press_sequence [ Right; Up; Right; Activate ])
+              let a, b =
+                await
+                @@ Moonpool.Fut.both
+                     (navigate_and_press_sequence [ Right; Right; Up; Activate ])
+                     (navigate_and_press_sequence [ Right; Up; Right; Activate ])
+              in
+              min a b
             | Activate, Left ->
-              min
-                (navigate_and_press_sequence [ Down; Left; Left; Activate ])
-                (navigate_and_press_sequence [ Left; Down; Left; Activate ])))
+              let a, b =
+                await
+                @@ Moonpool.Fut.both
+                     (navigate_and_press_sequence [ Down; Left; Left; Activate ])
+                     (navigate_and_press_sequence [ Left; Down; Left; Activate ])
+              in
+              min a b))
 ;;
 
 let navigate_and_press_sequence layer sequence =
