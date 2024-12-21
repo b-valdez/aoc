@@ -7,14 +7,11 @@ val fix
   -> 'b
 
 val repeat_fix
-  :  'a Kcas_data.Hashtbl.hashed_type
+  :  (module Ppx_hash_lib.Hashable.S with type t = 'root)
   -> ?min_buckets:int
   -> ?max_buckets:int
-  -> first_step:('a -> 'intermediate_result)
-  -> ((int -> 'a -> 'intermediate_result)
-      -> int
-      -> 'intermediate_result
-      -> 'intermediate_result)
+  -> first_step:('root -> 'branch)
+  -> ((int -> 'root -> 'branch) -> int -> 'branch -> 'branch)
   -> int
-  -> 'a
-  -> 'intermediate_result
+  -> 'root
+  -> 'branch
