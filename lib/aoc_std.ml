@@ -28,7 +28,7 @@ module Fut = Fut
 
 module Parallel_iter = Parallel_iter
 module Grid = Grid
-module Memo = Memo
+module Par_memo = Par_memo
 
 let parse_string parser =
   Angstrom.parse_string ~consume:All parser >> Result.ok_or_failwith

@@ -13,7 +13,7 @@ let%expect_test "test" =
     let cursor = parse_file_into_stream "input.blob" parser |> tap in
     let part1 () = xprintf "%d" (part1 cursor) ~expect:(fun () -> [%expect.unreachable]) in
     let part2 () = xprintf "%d" (part2 cursor) ~expect:(fun () -> [%expect.unreachable]) in
-    fork_join_array [||]
+    fork_join_array [| part1 |]
   in
   fork_join_array [| sample |]
 ;;

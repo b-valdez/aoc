@@ -11,7 +11,10 @@ val repeat_fix
   -> ?min_buckets:int
   -> ?max_buckets:int
   -> first_step:('a -> 'intermediate_result)
-  -> ((int -> 'a -> 'intermediate_result) -> int -> 'intermediate_result -> 'intermediate_result)
+  -> ((int -> 'a -> 'intermediate_result)
+      -> int
+      -> 'intermediate_result
+      -> 'intermediate_result)
   -> int
   -> 'a
   -> 'intermediate_result

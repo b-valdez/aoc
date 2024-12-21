@@ -31,7 +31,7 @@ let repeat_fix hashed_type ?min_buckets ?max_buckets ~first_step f =
       match Hashtbl.Xt.find_opt ~xt tbl initial with
       | Some sub_tbl ->
         let repetition, closest =
-        (* TODO replace with binary search to minimize accesses *)
+          (* TODO replace with binary search to minimize accesses *)
           Iter.(repetitions --^ 1)
           |> Iter.find_map ~f:(fun repetition ->
             Option.map
