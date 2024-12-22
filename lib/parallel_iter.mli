@@ -39,10 +39,17 @@ val iter : f:('a -> unit) -> 'a t -> unit
 val iteri : f:(int -> 'a -> unit) -> 'a t -> unit
 val for_each : seq:'a t -> ('a -> unit) -> unit
 val for_eachi : seq:'a t -> (int -> 'a -> unit) -> unit
-val fold : f:('acc -> 'a -> 'acc) -> init:'acc -> 'a t -> 'acc
-val foldi : f:('acc -> int -> 'a -> 'acc) -> init:'acc -> 'a t -> 'acc
-val fold_map : f:('acc -> 'a -> 'acc * 'b) -> init:'acc -> 'a t -> 'b t
-val fold_filter_map : f:('acc -> 'a -> 'acc * 'b option) -> init:'acc -> 'a t -> 'b t
+val fold : ?padded:bool -> f:('acc -> 'a -> 'acc) -> init:'acc -> 'a t -> 'acc
+val foldi : ?padded:bool -> f:('acc -> int -> 'a -> 'acc) -> init:'acc -> 'a t -> 'acc
+val fold_map : ?padded:bool -> f:('acc -> 'a -> 'acc * 'b) -> init:'acc -> 'a t -> 'b t
+
+val fold_filter_map
+  :  ?padded:bool
+  -> f:('acc -> 'a -> 'acc * 'b option)
+  -> init:'acc
+  -> 'a t
+  -> 'b t
+
 val map : f:('a -> 'b) -> 'a t -> 'b t
 val mapi : f:(int -> 'a -> 'b) -> 'a t -> 'b t
 val filter : f:('a -> bool) -> 'a t -> 'a t

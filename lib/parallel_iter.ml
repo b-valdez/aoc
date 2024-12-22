@@ -200,33 +200,32 @@ let iter ~f seq =
 
 let iteri ~f seq =
   let counter = Atomic.make 0 in
-  seq (fun x -> f (Atomic.fetch_and_add counter 1) x) |> Computation.await
+  iter seq ~f:(fun x -> f (Atomic.fetch_and_add counter 1) x)
 ;;
 
-let for_each ~seq f = seq f |> Computation.await
+let for_each ~seq f = iter seq ~f
 let for_eachi ~seq f = iteri ~f seq
 
-let fold ~f ~init seq =
-  let mutex = Mutex.create () in
+let fold ?padded ~f ~init seq =
+  let mutex = Mutex.create ?padded () in
   let r = ref init in
-  seq (fun elt -> Mutex.protect mutex (fun () -> r := f !r elt)) |> Computation.await;
+  iter seq ~f:(fun elt -> Mutex.protect mutex (fun () -> r := f !r elt));
   !r
 ;;
 
-let foldi ~f ~init seq =
-  let mutex = Mutex.create () in
+let foldi ?padded ~f ~init seq =
+  let mutex = Mutex.create ?padded () in
   let i = ref 0 in
   let r = ref init in
-  seq (fun elt ->
+  iter seq ~f:(fun elt ->
     Mutex.protect mutex (fun () ->
       r := f !r !i elt;
-      incr i))
-  |> Computation.await;
+      incr i));
   !r
 ;;
 
-let fold_map ~f ~init seq yield =
-  let mutex = Mutex.create () in
+let fold_map ?padded ~f ~init seq yield =
+  let mutex = Mutex.create ?padded () in
   let r = ref init in
   seq (fun x ->
     let y =
@@ -238,8 +237,8 @@ let fold_map ~f ~init seq yield =
     yield y)
 ;;
 
-let fold_filter_map ~f ~init seq yield =
-  let mutex = Mutex.create () in
+let fold_filter_map ?padded ~f ~init seq yield =
+  let mutex = Mutex.create ?padded () in
   let r = ref init in
   seq (fun [@inline] x ->
     let y =
