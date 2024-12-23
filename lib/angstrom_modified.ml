@@ -56,6 +56,40 @@ let triple ?sep p =
   lift3 Tuple3.create p_sep p_sep p <?> "triple"
 ;;
 
+let bi_multi_map ?sep_pair ?sep_pairs comparator element =
+  let sep_pairs =
+    Option.value_map sep_pairs ~default:(return ()) ~f:(fun sep -> sep *> return ())
+  in
+  let rec aux map =
+    option
+      map
+      (let%bind () = sep_pairs
+       and first, second = pair ?sep:sep_pair element in
+       (aux [@tailcall])
+       @@ Map.update
+            (Map.update
+               map
+               second
+               ~f:
+                 (Option.value_map
+                    ~default:(Set.singleton comparator first)
+                    ~f:(fun set -> Set.add set first)))
+            first
+            ~f:
+              (Option.value_map ~default:(Set.singleton comparator second) ~f:(fun set ->
+                 Set.add set second)))
+  in
+  option
+    (Map.empty comparator)
+    (let%bind first, second = pair ?sep:sep_pair element in
+     (aux [@tailcall])
+     @@ Map.of_alist_exn
+          comparator
+          [ first, Set.singleton comparator second
+          ; second, Set.singleton comparator first
+          ])
+;;
+
 let grid f =
   let line =
     many1_till (any_char >>| f) (end_of_line <|> end_of_input) >>| Array.of_list <* commit

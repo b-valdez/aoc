@@ -28,6 +28,13 @@ val many_unique_till
   -> 'c t
   -> ('a, 'b) Core.Set.t t
 
+val bi_multi_map
+  :  ?sep_pair:_ t
+  -> ?sep_pairs:_ t
+  -> ('a, 'b) Core.Comparator.Module.t
+  -> 'a t
+  -> ('a, ('a, 'b) Core.Set.t, 'b) Core.Map.t t
+
 val pair : ?sep:_ t -> 'a t -> ('a, 'a) Core.Tuple2.t t
 val triple : ?sep:_ t -> 'a t -> ('a, 'a, 'a) Core.Tuple3.t t
 val grid : (char -> 'a) -> 'a array array t

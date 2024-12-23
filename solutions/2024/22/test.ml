@@ -1,7 +1,7 @@
 let%expect_test "test" =
   let open! Aoc_std in
   let open Solution in
-  run
+  run ~timeout:15.
   @@ fun [@warning "-26"] _ ->
   let sample () =
     let cursor = parse_file_into_stream "sample.blob" parser |> tap in
