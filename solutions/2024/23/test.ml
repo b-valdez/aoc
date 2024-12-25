@@ -15,7 +15,8 @@ let%expect_test "test" =
     let parsed = parse_file "input.blob" parser in
     let part1 () = xprintf "%d" (part1 parsed) ~expect:(fun () -> {%expect| 1314 |}) in
     let part2 () =
-      xprintf "%s" (part2 parsed) ~expect:(fun () ->{%expect| bg,bu,ce,ga,hw,jw,nf,nt,ox,tj,uu,vk,wp |})
+      xprintf "%s" (part2 parsed) ~expect:(fun () ->
+        {%expect| bg,bu,ce,ga,hw,jw,nf,nt,ox,tj,uu,vk,wp |})
     in
     fork_join_array [| part1; part2 |]
   in

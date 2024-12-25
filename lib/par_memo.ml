@@ -4,24 +4,23 @@ open Kcas_data
 let fix hashed_type ?min_buckets ?max_buckets f =
   let tbl = Hashtbl.create ~hashed_type ?min_buckets ?max_buckets () in
   let rec memo arg =
+    let comp = Picos.Fiber.(current () |> get_computation) in
     let tx ~xt =
       match Hashtbl.Xt.find_opt ~xt tbl arg with
-      | Some promise -> fun () -> Promise.await_exn promise
+      | Some promise -> fun () -> promise
       | None ->
         let promise, resolver = Promise.create () in
         Hashtbl.Xt.replace ~xt tbl arg promise;
         fun () ->
-          (match f memo arg with
-           | value ->
-             Promise.resolve_ok resolver value;
-             value
-           | exception exn ->
-             Promise.resolve_error resolver exn;
-             raise exn)
+          Picos.Fiber.spawn (Picos.Fiber.create_packed ~forbid:false comp) (fun _ ->
+            match f memo arg with
+            | value -> Promise.resolve_ok resolver value
+            | exception exn -> Promise.resolve_error resolver exn);
+          promise
     in
     Kcas.Xt.commit { tx } ()
   in
-  memo
+  fun arg -> Promise.await_exn (memo arg)
 ;;
 
 let repeat_fix
@@ -69,4 +68,10 @@ let repeat_fix
       Kcas.Xt.commit { tx } ())
   in
   memo
+;;
+
+let moonpool_fut_of_kcas_promise promise =
+  match Promise.peek promise with
+  | Some value -> Moonpool.Fut.of_result (value |> Result.map_error ~f:Moonpool.Exn_bt.get)
+  | None -> Moonpool.Fut.spawn_on_current_runner (fun () -> Promise.await_exn promise)
 ;;
