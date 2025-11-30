@@ -2,7 +2,7 @@ let%expect_test "test" =
   let open! Aoc_std in
   let open Solution in
   run
-  @@ fun [@warning "-26"] _ ->
+  @@ fun[@warning "-26"] _ ->
   let sample () =
     let[@warning "-8"] [| seq1; seq2 |] =
       parse_file_into_iter "sample.blob" parser |> tee_iter ~n:2

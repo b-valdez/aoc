@@ -8,7 +8,7 @@ let equal (type value) equal_value a b =
   | _ -> false
 ;;
 
-let sexp_of_t (type value) sexp_of_value a =
+let sexp_of_t sexp_of_value a =
   match peek a with
   | Some a -> [%sexp_of: (value, _) result] a
   | None -> Sexp.Atom "Unresolved"

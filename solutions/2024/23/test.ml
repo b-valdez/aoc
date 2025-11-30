@@ -2,7 +2,7 @@ let%expect_test "test" =
   let open! Aoc_std in
   let open Solution in
   run
-  @@ fun [@warning "-26"] _ ->
+  @@ fun[@warning "-26"] _ ->
   let sample () =
     let parsed = parse_file "sample.blob" parser in
     let part1 () = xprintf "%d" (part1 parsed) ~expect:(fun () -> {%expect| 7 |}) in

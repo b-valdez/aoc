@@ -13,9 +13,9 @@ let[@inline] fork outer_computation thunk =
 ;;
 
 let[@inline] periodic_yield = function
-  | None -> fun [@inline] _ -> 1
+  | None -> fun[@inline] _ -> 1
   | Some interval ->
-    fun [@inline] phase ->
+    fun[@inline] phase ->
       if phase = interval
       then (
         Fiber.yield ();
@@ -100,7 +100,7 @@ let from_fun ?padded ?yield_every f k =
 let[@inline] empty _ = Computation.finished
 
 let (return as singleton as pure) =
-  fun [@inline] x f ->
+  fun[@inline] x f ->
   let computation = Computation.create () in
   fork computation (fun _ ->
     if not @@ Computation.is_canceled computation
@@ -240,7 +240,7 @@ let fold_map ?padded ~f ~init seq yield =
 let fold_filter_map ?padded ~f ~init seq yield =
   let mutex = Mutex.create ?padded () in
   let r = ref init in
-  seq (fun [@inline] x ->
+  seq (fun[@inline] x ->
     let y =
       (Mutex.protect [@inlined]) mutex (fun () ->
         let acc', y = f !r x in
@@ -513,7 +513,7 @@ let stream_on ?(poison = false) ?callstack stream seq =
 
 let _iter_of_cursor cursor seq =
   (Iter.unfoldr [@inlined])
-    (fun [@inline] cursor ->
+    (fun[@inline] cursor ->
        match Stream.read cursor with
        | read_result -> Some read_result
        | exception Stream_closed -> None)
@@ -524,7 +524,7 @@ let _iter_of_cursor cursor seq =
 let of_cursor ?yield_every cursor seq =
   (unfoldr [@inlined])
     ?yield_every
-    (fun [@inline] cursor ->
+    (fun[@inline] cursor ->
        match Stream.read cursor with
        | read_result -> Some read_result
        | exception Stream_closed -> None)
@@ -686,7 +686,7 @@ let into_buckets (type t) ?padded (module T : Deriving_enum with type t = t) ~pr
   result
 ;;
 
-let sort (type t) ?padded ~compare =
+let sort ?padded ~compare =
   batch_fold ?padded ~init:[||] ~f:(fun acc unsorted ->
     Core.Array.sort unsorted ~compare;
     Core.Array.merge acc unsorted ~compare)

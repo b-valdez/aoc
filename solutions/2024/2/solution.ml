@@ -86,7 +86,7 @@ let common =
     in
     without_problem, dampened_problem)
   >> tee_parallel_iter ~n:2
-  >> fun [@warning "-8"] [| a; b |] -> a, b
+  >> fun[@warning "-8"] [| a; b |] -> a, b
 ;;
 
 let part1 seq = Parallel_iter.filter_count ~f:fst seq

@@ -19,7 +19,7 @@ depends: [
   "saturn"
   "moonpool"
   "picos"
-  "picos_std_sync"
+  "picos_std"
   "fix"
   "embedded_ocaml_templates" {dev}
   "odoc" {with-doc}

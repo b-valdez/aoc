@@ -14,16 +14,18 @@
   string_dict
   angstrom
   ocaml
-  owl
+  kcas
+  kcas_data
   lp
   lp-glpk
+  nx
   dune
   (shexp :dev)
   backoff
   saturn
   moonpool
   picos
-  picos_std_sync
+  picos_std
   fix
   (embedded_ocaml_templates :dev)))
 

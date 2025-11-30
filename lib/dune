@@ -14,9 +14,7 @@
   picos_std.sync
   (re_export moonpool)
   multicore-magic
-  moonpool.fib
   moonpool.forkjoin
-  moonpool.sync
   core_kernel.caml_threads
   kcas
   kcas_data))

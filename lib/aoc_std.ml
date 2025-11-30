@@ -39,7 +39,7 @@ type wrap = Wrap : ('a Angstrom.t * ('a -> wrap Effect.t)) -> wrap [@@unboxed]
 let parse_partial file parser eff =
   let open Angstrom_modified.Unbuffered in
   let buffer = Bigstring.create 0x1100 in
-  let rec f : type a b. a state -> (a -> wrap Effect.t) -> _ -> _ =
+  let rec f : type a. a state -> (a -> wrap Effect.t) -> _ -> _ =
     fun state eff ic buffer off len eof ->
     match state with
     | Done (consumed, v) ->
@@ -102,7 +102,7 @@ let parse_file_prefix (type a) file parser =
       { retc = (fun _ -> invalid_arg "parse_file: Returned without a Yield")
       ; exnc = raise
       ; effc =
-          (fun (type a' b) -> function
+          (fun (type a') -> function
              | (Eff.Yield el : a' Effect.t) ->
                Some
                  (fun (k : (a', _) Effect.Shallow.continuation) ->
@@ -169,7 +169,7 @@ let parse_file_into_iter (type a) file parser k_iter =
 ;;
 
 let continue_parsing_into_stream (type a) fiber parser =
-  let stream = Moonpool_sync.Stream.create () in
+  let stream = Picos_std_sync.Stream.create () in
   Moonpool.Runner.(run_async (get_current_runner () |> Option.value_exn)) (fun () ->
     let module Eff = struct
       type _ Effect.t += Yield : a -> wrap Effect.t
@@ -187,19 +187,19 @@ let continue_parsing_into_stream (type a) fiber parser =
       { effc =
           (fun (type a') -> function
              | (Eff.Yield a : a' Effect.t) ->
-               Moonpool_sync.Stream.push stream a;
+               Picos_std_sync.Stream.push stream a;
                Some
                  (fun (k : (a', _) Effect.Deep.continuation) ->
                    Effect.Deep.continue k (Wrap (parser, eff)))
              | _ -> None)
-      ; retc = (fun () -> Moonpool_sync.Stream.poison stream Parallel_iter.Stream_closed)
-      ; exnc = Moonpool_sync.Stream.poison stream
+      ; retc = (fun () -> Picos_std_sync.Stream.poison stream Parallel_iter.Stream_closed)
+      ; exnc = Picos_std_sync.Stream.poison stream
       });
   stream
 ;;
 
 let parse_file_into_stream (type a) file parser =
-  let stream = Moonpool_sync.Stream.create () in
+  let stream = Picos_std_sync.Stream.create () in
   Moonpool.Runner.(run_async (get_current_runner () |> Option.value_exn)) (fun () ->
     let module Eff = struct
       type _ Effect.t += Yield : a -> wrap Effect.t
@@ -210,12 +210,12 @@ let parse_file_into_stream (type a) file parser =
     match_with
       (parse_partial file parser)
       eff
-      { retc = (fun () -> Moonpool_sync.Stream.poison stream Parallel_iter.Stream_closed)
-      ; exnc = Moonpool_sync.Stream.poison stream
+      { retc = (fun () -> Picos_std_sync.Stream.poison stream Parallel_iter.Stream_closed)
+      ; exnc = Picos_std_sync.Stream.poison stream
       ; effc =
           (fun (type a') -> function
              | (Eff.Yield a : a' Effect.t) ->
-               Moonpool_sync.Stream.push stream a;
+               Picos_std_sync.Stream.push stream a;
                Some (fun (k : (a', unit) continuation) -> continue k (Wrap (parser, eff)))
              | _ -> None)
       });
@@ -226,7 +226,7 @@ let tap = Picos_std_sync.Stream.tap
 let is_shutdown = ref true
 
 let run ?(timeout = 10.) f =
-  Moonpool_fib.main (fun _ ->
+  Moonpool.Main.main (fun _ ->
     Moonpool.Ws_pool.(
       with_ () (fun pool ->
         is_shutdown := false;

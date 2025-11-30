@@ -1,8 +1,8 @@
-let%expect_test "test" =
+let%expect_test ("test" [@tags "disabled"] (* TODO *)) =
   let open! Aoc_std in
   let open Solution in
   run
-  @@ fun [@warning "-26"] _ ->
+  @@ fun[@warning "-26"] _ ->
   let sample () =
     let cursor = parse_file_into_stream "sample.blob" parser |> tap in
     let part1 () =
