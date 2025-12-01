@@ -17,6 +17,6 @@ There is a weird parsing error in 2024/16 that I should fix before it becomes a 
 
 2024/21 doesn't seem to resolve in a reasonable timeframe. Need to investigate.
 
-Parallel_iter was an experiment which I am done with. It should be removed as soon as it is no longer required.
+Parallel_iter was an experiment. I should try and see if the heavy parallelization is worth it.
 
 Investigate if core can be dropped as a dependency.
