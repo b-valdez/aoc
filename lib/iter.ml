@@ -107,3 +107,9 @@ module Let_syntax = struct
     module Open_on_rhs = Infix
   end
 end
+
+let tap iter ~f g =
+  iter (fun x ->
+    f x;
+    g x)
+;;

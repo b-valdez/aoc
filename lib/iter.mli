@@ -32,3 +32,4 @@ type 'a functional_gen =
   }
 
 val to_functional_gen : 'a t -> 'a functional_gen
+val tap : 'a t -> f:('a -> unit) -> 'a t

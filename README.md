@@ -17,6 +17,8 @@ There is a weird parsing error in 2024/16 that I should fix before it becomes a 
 
 2024/21 doesn't seem to resolve in a reasonable timeframe. Need to investigate.
 
+2024/15 seems flakey (from input order)
+
 Parallel_iter was an experiment. I should try and see if the heavy parallelization is worth it.
 
 Investigate if core can be dropped as a dependency.
