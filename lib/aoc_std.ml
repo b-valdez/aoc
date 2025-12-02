@@ -26,6 +26,10 @@ module Fut = Fut
 
 (** {2 Added for AOC} *)
 
+type part =
+  | Part1
+  | Part2
+
 module Parallel_iter = Parallel_iter
 module Grid = Grid
 module Par_memo = Par_memo

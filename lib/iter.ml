@@ -113,3 +113,5 @@ let tap iter ~f g =
     f x;
     g x)
 ;;
+
+let to_set elt = fold ~init:(Core.Set.empty elt) ~f:Core.Set.add
