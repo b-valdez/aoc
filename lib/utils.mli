@@ -69,3 +69,5 @@ val a_star_all_paths
   -> start_positions:('key * 'priority) list
   -> is_goal:('key -> bool)
   -> 'key * 'priority * ('key, 'priority * 'key list) Hashtbl.t
+
+val until_stable : equal:('a -> 'a -> bool) -> f:('a -> 'a) -> init:'a -> 'a

@@ -188,3 +188,8 @@ let a_star_all_paths
        (List.map start_positions ~f:(fun ((state, cost) as state_with_cost) ->
           state_with_cost, Cost.(cost + heuristic state))))
 ;;
+
+let rec until_stable ~equal ~f ~init =
+  let next = f init in
+  if equal init next then next else until_stable ~equal ~f ~init:next
+;;

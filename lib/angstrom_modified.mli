@@ -47,7 +47,7 @@ val grid_start
 
 val tf_grid : bool array array t
 val tf_grid_lazy : bool array array t
-val sparse_tf_grid : Grid.Position.Set.t t
+val sparse_tf_grid : ?true_:char -> ?false_:char -> unit -> Grid.Position.Set.t t
 val sparse_tf_grid_start : char -> (Grid.Position.t * Grid.Position.Set.t * int * int) t
 val sparse_grid : (Grid.Position.t list Core.Char.Map.t * int * int) t
 val count_till : bool t -> _ t -> int t

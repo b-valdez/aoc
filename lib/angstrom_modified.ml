@@ -166,17 +166,18 @@ let tf_grid_lazy =
   lines_lazy line >>| Array.of_list <?> "tf_grid_lazy"
 ;;
 
-let sparse_tf_grid =
-  scan_state
-    (Grid.Position.Set.empty, (0, 0))
-    (fun (acc, ((x, y) as pos)) -> function
-      | '#' -> Some (Set.add acc pos, (x + 1, y))
-      | '.' -> Some (acc, (x + 1, y))
-      | '\n' -> Some (acc, (0, y + 1))
-      | '\r' -> Some (acc, pos)
-      | _ -> None)
-  >>| fst
-  <?> "sparse_tf_grid"
+let sparse_tf_grid ?(true_ = '#') ?(false_ = '.') () =
+  let initial_state = Grid.Position.Set.empty, (0, 0) in
+  let rec line state =
+    let* acc, (_, y) =
+      scan_state state (fun (acc, ((x, y) as pos)) -> function
+        | c when Char.(c = true_) -> Some (Set.add acc pos, (x + 1, y))
+        | c when Char.(c = false_) -> Some (acc, (x + 1, y))
+        | _ -> None)
+    in
+    end_of_input *> return acc <|> end_of_line *> commit *> line (acc, (0, y + 1))
+  in
+  line initial_state <?> "sparse_tf_grid"
 ;;
 
 (* TODO record type for labels *)
