@@ -17,8 +17,10 @@ There is a weird parsing error in 2024/16 that I should fix before it becomes a 
 
 2024/21 doesn't seem to resolve in a reasonable timeframe. Need to investigate.
 
-2024/15 seems flakey (from input order)
+2024/15 seems flakey (parallel printfs messing with expect tests)
 
 Parallel_iter was an experiment. I should try and see if the heavy parallelization is worth it.
 
 Investigate if core can be dropped as a dependency.
+
+It might be nice to unify the return types of Angstrom_modified.(grid, sparse_tf_grid) into a single grid type. Angstrom_modified.sparse_grid is too different to those, could possibly be renamed. As part of that 2024/15 would have to be rewritten to no longer rely on mutability of the grid. Might think about using iarray for the non-sparse grid.

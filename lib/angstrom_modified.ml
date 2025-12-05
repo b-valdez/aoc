@@ -51,6 +51,8 @@ let pair ?sep p =
   <?> "pair"
 ;;
 
+let interval = pair ~sep:(char '-') nat <?> "interval"
+
 let triple ?sep p =
   let p_sep = Option.value_map sep ~default:p ~f:(fun sep -> p <* sep) in
   lift3 Tuple3.create p_sep p_sep p <?> "triple"

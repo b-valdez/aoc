@@ -2,10 +2,7 @@ open! Aoc_std
 
 let parser =
   let open Angstrom in
-  let+ first = nat
-  and+ last = char '-' *> nat
-  and+ _ = option () (char ',' *> option () (end_of_line <|> end_of_input)) *> commit in
-  first, last
+  interval <* option () (char ',' *> option () (end_of_line <|> end_of_input)) <* commit
 ;;
 
 let rec repeated n magnitude to_repeat =

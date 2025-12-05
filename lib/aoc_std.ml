@@ -33,6 +33,7 @@ type part =
 module Parallel_iter = Parallel_iter
 module Grid = Grid
 module Par_memo = Par_memo
+module Interval = Interval
 
 let parse_string parser =
   Angstrom.parse_string ~consume:All parser >> Result.ok_or_failwith

@@ -21,7 +21,7 @@ type operation =
 
 let put int = Put int
 
-(* We could just use a Hashtbl, but that would be boring*)
+(* We could just use a Hashtbl, but that would be boring *)
 let part2 parsed =
   let state = Array.create ~len:256 [] in
   let[@tail_mod_cons] rec remove key = function

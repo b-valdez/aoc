@@ -36,6 +36,7 @@ val bi_multi_map
   -> ('a, ('a, 'b) Core.Set.t, 'b) Core.Map.t t
 
 val pair : ?sep:_ t -> 'a t -> ('a, 'a) Core.Tuple2.t t
+val interval : Interval.t t
 val triple : ?sep:_ t -> 'a t -> ('a, 'a, 'a) Core.Tuple3.t t
 val grid : (char -> 'a) -> 'a array array t
 
