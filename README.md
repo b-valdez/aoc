@@ -24,3 +24,5 @@ Parallel_iter was an experiment. I should try and see if the heavy parallelizati
 Investigate if core can be dropped as a dependency.
 
 It might be nice to unify the return types of Angstrom_modified.(grid, sparse_tf_grid) into a single grid type. Angstrom_modified.sparse_grid is too different to those, could possibly be renamed. As part of that 2024/15 would have to be rewritten to no longer rely on mutability of the grid. Might think about using iarray for the non-sparse grid.
+
+I thought I build `parse_file_into_iter` to parse in parallel while the iter works. This doesn't seem to be the case.
