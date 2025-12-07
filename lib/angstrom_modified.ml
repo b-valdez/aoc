@@ -6,6 +6,7 @@ open Composition_infix
 let skip_while1 pred = skip pred *> skip_while pred <?> "skip_while1"
 let space = char ' ' *> return () <?> "space"
 let spaces = skip_many1 (char ' ') <?> "spaces"
+let dots = skip_many1 (char '.') <?> "dots"
 let digit = satisfy Char.is_digit >>| Char.get_digit_exn <?> "digit"
 let nat = take_while1 Char.is_digit >>| int_of_string <?> "nat"
 let nat_eager = nat <* commit <?> "nat_eager"

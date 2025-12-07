@@ -1,0 +1,13 @@
+(library
+ (name aoc_2025_7)
+ (inline_tests
+  (deps
+   (glob_files *.blob)))
+ (preprocess
+  (pps ppx_jane -expect-test-strict-indentation=true))
+ (libraries aoc_std))
+
+(alias
+ (name default)
+ (deps
+  (alias runtest)))

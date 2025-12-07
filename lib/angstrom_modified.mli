@@ -4,6 +4,7 @@ include module type of Let_syntax
 val skip_while1 : (char -> bool) -> unit t
 val space : unit t
 val spaces : unit t
+val dots : unit t
 val digit : int t
 val nat : int t
 val nat_eager : int t

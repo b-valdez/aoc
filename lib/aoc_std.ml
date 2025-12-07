@@ -64,8 +64,7 @@ let parse_partial file parser eff =
       let off =
         if off + len > 0x100
         then (
-          (* TODO replace with unsafe_blit, once it has shown itself to be safe *)
-          Bigstring.blit
+          Bigstring.unsafe_blit
             ~src:buffer
             ~dst:buffer
             ~src_pos:(off + consumed)
@@ -100,7 +99,7 @@ let parse_file_prefix (type a) file parser =
   in
   let eff a = Eff.Yield a in
   let fiber = Effect.Shallow.fiber (parse_partial file parser) in
-  let el, fiber =
+  let el, k =
     Effect.Shallow.continue_with
       fiber
       eff
@@ -115,7 +114,7 @@ let parse_file_prefix (type a) file parser =
              | _ -> None)
       }
   in
-  el, fiber
+  el, k
 ;;
 
 let parse_file file parser =
@@ -127,7 +126,7 @@ let parse_file file parser =
   el
 ;;
 
-let continue_parsing_into_iter (type a) fiber parser k_iter =
+let continue_parsing_into_iter (type a) k parser k_iter =
   let module Eff = struct
     type _ Effect.t += Yield : a -> wrap Effect.t
   end
@@ -135,7 +134,7 @@ let continue_parsing_into_iter (type a) fiber parser k_iter =
   let eff a = Eff.Yield a in
   Effect.Deep.(
     try_with
-      (Effect.Shallow.continue_with fiber (Wrap (parser, eff)))
+      (Effect.Shallow.continue_with k (Wrap (parser, eff)))
       { retc = Fun.id
       ; exnc = raise_notrace
       ; effc =
@@ -173,7 +172,7 @@ let parse_file_into_iter (type a) file parser k_iter =
       })
 ;;
 
-let continue_parsing_into_stream (type a) fiber parser =
+let continue_parsing_into_stream (type a) k parser =
   let stream = Picos_std_sync.Stream.create () in
   Moonpool.Runner.(run_async (get_current_runner () |> Option.value_exn)) (fun () ->
     let module Eff = struct
@@ -182,7 +181,7 @@ let continue_parsing_into_stream (type a) fiber parser =
     in
     let eff a = Eff.Yield a in
     Effect.Deep.match_with
-      (Effect.Shallow.continue_with fiber (Wrap (parser, eff)))
+      (Effect.Shallow.continue_with k (Wrap (parser, eff)))
       { retc = Fun.id
       ; exnc = raise_notrace
       ; effc =
