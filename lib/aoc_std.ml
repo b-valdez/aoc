@@ -30,6 +30,10 @@ type part =
   | Part1
   | Part2
 
+type source =
+  | Sample
+  | Input
+
 module Parallel_iter = Parallel_iter
 module Grid = Grid
 module Par_memo = Par_memo
