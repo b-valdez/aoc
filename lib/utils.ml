@@ -83,11 +83,21 @@ let dijkstra
   let module Queue = Psq.Make (Key) (Cost) in
   let rec aux visited queue =
     if Option.is_some verbose
-    then print_s @@ [%sexp_of: (Key.t * Cost.t) list] @@ Queue.to_list queue;
+    then
+      print_s
+        [%message
+          ""
+            ~unvisited:
+              (Sexp.to_string_hum
+               @@ [%sexp_of: (Key.t * Cost.t) list]
+               @@ Queue.to_list queue)];
     match Queue.pop queue with
     | None -> assert false
     | Some ((state, priority), _) when is_goal state -> state, priority
     | Some ((state, priority), rest) ->
+      if Option.is_some verbose
+      then
+        print_s [%message "handling" ~state:(state : Key.t) ~priority:(priority : Cost.t)];
       step state priority
       |> Iter.filter ~f:(fun (state, _) -> not @@ Set.mem visited state)
       |> Iter.fold ~init:rest ~f:(fun rest (state, priority) ->
