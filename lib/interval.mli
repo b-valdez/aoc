@@ -1,6 +1,7 @@
 type t = int * int [@@deriving sexp, compare]
 
 val mem : t -> int -> bool
+val is_disjoint : t -> t -> bool
 
 type set
 

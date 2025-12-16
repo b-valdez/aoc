@@ -3,6 +3,7 @@ open! Core
 type t = int * int [@@deriving sexp, compare]
 
 let mem (low, high) i = Int.between ~low ~high i
+let is_disjoint (low, high) (low', high') = high < low' || high' < low
 
 (* maybe consider rewriting this as a proper t Set for putposes of binary search *)
 type set = t list
